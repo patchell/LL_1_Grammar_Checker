@@ -3,6 +3,13 @@
 As65
  -> CodeLines
 CodeLines
+ -> CodeLine CodeLines_1
+CodeLines_1
+ -> EOL CodeLine CodeLines_1
+ -> e
+CodeLine
+ -> OptLable AsmStatement
+AsmStatement
  -> DefineStorage DefineMemory_1
 DefineMemory_1
  -> DB AsmConstList DefineStorage DefineMemory_1
@@ -39,77 +46,77 @@ Org_1
  -> ORG NUMBER Processor Org_1
  -> e
 Processor
- -> Operator Processor_1
+ -> Instruction Processor_1
 Processor_1
- -> PROCESSOR ProcessorType Operator Processor_1
+ -> PROCESSOR ProcessorType Instruction Processor_1
  -> e
 ProcessorType
  -> R6502
  -> WD65C02
  -> WD65C816
-Operator
- -> Lable Operator_1
-Operator_1
- -> ADC AluAdrModes Lable Operator_1
- -> AND AluAdrModes Lable Operator_1
- -> EOR AluAdrModes Lable Operator_1
- -> ORA AluAdrModes Lable Operator_1
- -> CMP AluAdrModes Lable Operator_1
- -> SBC AluAdrModes Lable Operator_1
- -> LDA AluAdrModes Lable Operator_1
- -> STA StaAddressingModes Lable Operator_1
- -> ASL ShiftAddressingModes Lable Operator_1
- -> ROL ShiftAddressingModes Lable Operator_1
- -> LSR ShiftAddressingModes Lable Operator_1
- -> ROR ShiftAddressingModes Lable Operator_1
- -> BCC RelAddressingMode Lable Operator_1
- -> BCS RelAddressingMode Lable Operator_1
- -> BEQ RelAddressingMode Lable Operator_1
- -> BMI RelAddressingMode Lable Operator_1
- -> BNE RelAddressingMode Lable Operator_1
- -> BPL RelAddressingMode Lable Operator_1
- -> BVC RelAddressingMode Lable Operator_1
- -> BVS RelAddressingMode Lable Operator_1
- -> BIT BitAddressModes Lable Operator_1
- -> BRK Lable Operator_1
- -> CLC Lable Operator_1
- -> CLD Lable Operator_1
- -> CLI Lable Operator_1
- -> CLV Lable Operator_1
- -> DEX Lable Operator_1
- -> DEY Lable Operator_1
- -> INX Lable Operator_1
- -> INY Lable Operator_1
- -> NOP Lable Operator_1
- -> PHA Lable Operator_1
- -> PLA Lable Operator_1
- -> PHP Lable Operator_1
- -> PLP Lable Operator_1
- -> RTI Lable Operator_1
- -> RTS Lable Operator_1
- -> SEC Lable Operator_1
- -> SED Lable Operator_1
- -> SEI Lable Operator_1
- -> TAX Lable Operator_1
- -> TAY Lable Operator_1
- -> TXA Lable Operator_1
- -> TYA Lable Operator_1
- -> TXS Lable Operator_1
- -> TSX Lable Operator_1
- -> INC IncAddressingMOdes Lable Operator_1
- -> DEC IncAddressingMOdes Lable Operator_1
- -> JMP JumpAddressingModes Lable Operator_1
- -> JSR CallAddressingMode Lable Operator_1
- -> CPX CPXAddressingMode Lable Operator_1
- -> CPY CPXAddressingMode Lable Operator_1
- -> LDX LdxAddressingMode Lable Operator_1
- -> LDY LdyAddressingMode Lable Operator_1
- -> STX StxAddressingMode Lable Operator_1
- -> STY StyAddressingMode Lable Operator_1
+Instruction
+ -> ADC AluAdrModes
+ -> AND AluAdrModes
+ -> EOR AluAdrModes
+ -> ORA AluAdrModes
+ -> CMP AluAdrModes
+ -> SBC AluAdrModes
+ -> LDA AluAdrModes
+ -> STA StaAddressingModes
+ -> ASL ShiftAddressingModes
+ -> ROL ShiftAddressingModes
+ -> LSR ShiftAddressingModes
+ -> ROR ShiftAddressingModes
+ -> BCC RelAddressingMode
+ -> BCS RelAddressingMode
+ -> BEQ RelAddressingMode
+ -> BMI RelAddressingMode
+ -> BNE RelAddressingMode
+ -> BPL RelAddressingMode
+ -> BVC RelAddressingMode
+ -> BVS RelAddressingMode
+ -> BIT BitAddressModes
+ -> BRK
+ -> CLC
+ -> CLD
+ -> CLI
+ -> CLV
+ -> DEX
+ -> DEY
+ -> INX
+ -> INY
+ -> NOP
+ -> PHA
+ -> PLA
+ -> PHP
+ -> PLP
+ -> RTI
+ -> RTS
+ -> SEC
+ -> SED
+ -> SEI
+ -> TAX
+ -> TAY
+ -> TXA
+ -> TYA
+ -> TXS
+ -> TSX
+ -> INC IncAddressingMOdes
+ -> DEC IncAddressingMOdes
+ -> JMP JumpAddressingModes
+ -> JSR CallAddressingMode
+ -> CPX CPXAddressingMode
+ -> CPY CPXAddressingMode
+ -> LDX LdxAddressingMode
+ -> LDY LdyAddressingMode
+ -> STX StxAddressingMode
+ -> STY StyAddressingMode
  -> e
-Lable
- -> IDENT Lable
- -> : IDENT Lable
+OptLable
+ -> IDENT LocalGlobal
+ -> e
+LocalGlobal
+ -> :
  -> e
 AluAdrModes
  -> # ConstUpperLower
@@ -182,6 +189,8 @@ AsmConstant_2
  -> - BaseAsmConstant AsmConstant_2
  -> e
 BaseAsmConstant
+ -> LOCAL_LABLE
+ -> GLOBAL_LABLE
  -> IDENT
  -> NUMBER
  -> CHAR_CONSTANT
@@ -191,43 +200,47 @@ TERMINALS['Terminals'] { 'ADC','AND','ASL','BCC','BCS','BEQ','BMI','BNE','BPL','
 ,'BVS','BIT','BRK','CLC','CLD','CLI','CLV','CMP','CPX','CPY','DEC','DEX','DEY','EOR'
 ,'INC','INX','INY','JMP','JSR','LDA','LDX','LDY','LSR','NOP','ORA','PHA','PLA','PHP'
 ,'PLP','ROL','ROR','RTI','RTS','SBC','STA','SEC','SED','SEI','STX','STY','TAX','TAY'
-,'TXA','TYA','TXS','TSX','AREG','XREG','YREG','IDENT','LABLE','STRING','HEX_NUMBER'
-,'CHAR_CONSTANT','SYMBOL','NUMBER','ORG','DB','DW','DL','DS','INCLUDE','SECTIONTOKEN'
-,'NAME','SIZE','START','MODE','READ_WRITE','READ_ONLY','R6502','PROCESSOR','WD65C02'
-,'WD65C816','VALUE','PROC','EPROC',',','=',':','#','(',')','>','<','+','-','*','e'
-,'$' }
-NONTERMINALS['Non Terminals'] { 'As65','CodeLines','DefineMemory_1','DefineStorage'
-,'DefineStorage_1','Proceedure','Proceedure_1','Section','Section_1','SectionAttributes'
-,'SectionAttributes_1','SectionAtribute','Org','Org_1','Processor','Processor_1','ProcessorType'
-,'Operator','Operator_1','Lable','AluAdrModes','Indirect','Indirect_1','StaAddressingModes'
-,'ShiftAddressingModes','RelAddressingMode','BitAddressModes','IncAddressingMOdes'
-,'JumpAddressingModes','CallAddressingMode','LdxAddressingMode','CPXAddressingMode'
-,'StxAddressingMode','LdyAddressingMode','StyAddressingMode','OptIndexReg','OptIndexReg_1'
-,'OptXReg','OptYReg','AsmConstList','AsmConstList_1','AsmConstant','String_1','ConstUpperLower'
-,'AsmConstant_1','AsmConstant_2','BaseAsmConstant' }
+,'TXA','TYA','TXS','TSX','AREG','XREG','YREG','IDENT','LOCAL_LABLE','GLOBAL_LABLE'
+,'STRING','HEX_NUMBER','CHAR_CONSTANT','SYMBOL','NUMBER','ORG','DB','DW','DL','DS'
+,'INCLUDE','SECTIONTOKEN','NAME','SIZE','START','MODE','READ_WRITE','READ_ONLY','R6502'
+,'PROCESSOR','WD65C02','WD65C816','VALUE','PROC','EPROC','EOL',',','=',':','#','('
+,')','>','<','+','-','*','e','$' }
+NONTERMINALS['Non Terminals'] { 'As65','CodeLines','CodeLines_1','CodeLine','AsmStatement'
+,'DefineMemory_1','DefineStorage','DefineStorage_1','Proceedure','Proceedure_1','Section'
+,'Section_1','SectionAttributes','SectionAttributes_1','SectionAtribute','Org','Org_1'
+,'Processor','Processor_1','ProcessorType','Instruction','OptLable','LocalGlobal'
+,'AluAdrModes','Indirect','Indirect_1','StaAddressingModes','ShiftAddressingModes'
+,'RelAddressingMode','BitAddressModes','IncAddressingMOdes','JumpAddressingModes'
+,'CallAddressingMode','LdxAddressingMode','CPXAddressingMode','StxAddressingMode'
+,'LdyAddressingMode','StyAddressingMode','OptIndexReg','OptIndexReg_1','OptXReg','OptYReg'
+,'AsmConstList','AsmConstList_1','AsmConstant','String_1','ConstUpperLower','AsmConstant_1'
+,'AsmConstant_2','BaseAsmConstant' }
 *********** Build Nullable Set **********
 ****************Create NOT nullable set ************************
 ----- Calc First Sets------
-FIRST['As65'] { ':' }
-FIRST['CodeLines'] { ':' }
+FIRST['As65'] { }
+FIRST['CodeLines'] { }
+FIRST['CodeLines_1'] { 'e' }
+FIRST['CodeLine'] { }
+FIRST['AsmStatement'] { }
 FIRST['DefineMemory_1'] { 'e' }
-FIRST['DefineStorage'] { ':' }
+FIRST['DefineStorage'] { }
 FIRST['DefineStorage_1'] { 'e' }
-FIRST['Proceedure'] { ':' }
+FIRST['Proceedure'] { }
 FIRST['Proceedure_1'] { 'e' }
-FIRST['Section'] { ':' }
+FIRST['Section'] { }
 FIRST['Section_1'] { 'e' }
 FIRST['SectionAttributes'] { 'e' }
 FIRST['SectionAttributes_1'] { ',','e' }
 FIRST['SectionAtribute'] { 'e' }
-FIRST['Org'] { ':' }
+FIRST['Org'] { }
 FIRST['Org_1'] { 'e' }
-FIRST['Processor'] { ':' }
+FIRST['Processor'] { 'e' }
 FIRST['Processor_1'] { 'e' }
 FIRST['ProcessorType'] { }
-FIRST['Operator'] { 'e',':' }
-FIRST['Operator_1'] { 'e' }
-FIRST['Lable'] { ':','e' }
+FIRST['Instruction'] { 'e' }
+FIRST['OptLable'] { 'e' }
+FIRST['LocalGlobal'] { ':','e' }
 FIRST['AluAdrModes'] { '#','(','>','<' }
 FIRST['Indirect'] { '>','<' }
 FIRST['Indirect_1'] { ')',',' }
@@ -259,6 +272,9 @@ FIRST['BaseAsmConstant'] { '*','e' }
 ------------ Follow Sets ---------------
 FOLLOW['As65'] { '$' }
 FOLLOW['CodeLines'] { '$' }
+FOLLOW['CodeLines_1'] { '$' }
+FOLLOW['CodeLine'] { '$' }
+FOLLOW['AsmStatement'] { '$' }
 FOLLOW['DefineMemory_1'] { '$' }
 FOLLOW['DefineStorage'] { '$' }
 FOLLOW['DefineStorage_1'] { '$' }
@@ -274,9 +290,9 @@ FOLLOW['Org_1'] { '$' }
 FOLLOW['Processor'] { '$' }
 FOLLOW['Processor_1'] { '$' }
 FOLLOW['ProcessorType'] { }
-FOLLOW['Operator'] { '$' }
-FOLLOW['Operator_1'] { '$' }
-FOLLOW['Lable'] { '$' }
+FOLLOW['Instruction'] { '$' }
+FOLLOW['OptLable'] { }
+FOLLOW['LocalGlobal'] { }
 FOLLOW['AluAdrModes'] { }
 FOLLOW['Indirect'] { }
 FOLLOW['Indirect_1'] { }
@@ -305,5 +321,5 @@ FOLLOW['AsmConstant_1'] { ',',')' }
 FOLLOW['AsmConstant_2'] { ',',')' }
 FOLLOW['BaseAsmConstant'] { '+','-',',',')' }
 ---------------- Create Parse Table --------------
-Table Entries = 100
+Table Entries = 94
 ------------ Check For Conflicts-------------

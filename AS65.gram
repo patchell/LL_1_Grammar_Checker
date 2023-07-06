@@ -66,11 +66,13 @@ TERMINALS
 "TYA",
 "TXS",
 "TSX",
+
 "AREG",
 "XREG",
 "YREG",
 "IDENT",
-"LABLE",
+"LOCAL_LABLE",
+"GLOBAL_LABLE",
 "STRING",
 "HEX_NUMBER",
 "CHAR_CONSTANT",
@@ -95,14 +97,23 @@ TERMINALS
 "WD65C816",
 "VALUE",
 "PROC",
-"EPROC"
+"EPROC",
+"EOL"
 
 
 GRAMMAR
 
 As65	-> CodeLines;
 
-CodeLines		-> DefineStorage DefineMemory_1;
+CodeLines		-> CodeLine CodeLines_1;
+CodeLines_1		-> EOL CodeLine CodeLines_1
+				-> .
+				;
+
+CodeLine		-> OptLable AsmStatement;
+
+
+AsmStatement	-> DefineStorage DefineMemory_1;
 DefineMemory_1	-> DB AsmConstList DefineStorage DefineMemory_1 
 				-> DW AsmConstList DefineStorage DefineMemory_1
 				-> DL AsmConstList DefineStorage DefineMemory_1
@@ -123,6 +134,7 @@ Section			-> Org Section_1;
 Section_1		-> SECTIONTOKEN SectionAttributes Org Section_1
 				-> .
 				;
+
 SectionAttributes	-> SectionAtribute SectionAttributes_1;
 SectionAttributes_1	-> ',' SectionAtribute SectionAttributes_1
 					-> .
@@ -138,8 +150,8 @@ Org_1			-> ORG NUMBER Processor Org_1
 				-> .
 				;
 
-Processor		-> Operator Processor_1;
-Processor_1		-> PROCESSOR ProcessorType Operator Processor_1
+Processor		-> Instruction Processor_1;
+Processor_1		-> PROCESSOR ProcessorType Instruction Processor_1
 				-> .
 				;
 ProcessorType-> R6502
@@ -147,70 +159,72 @@ ProcessorType-> R6502
 			-> WD65C816
 			;
 
-Operator	-> Lable  Operator_1;
-Operator_1	-> ADC  AluAdrModes	Lable Operator_1		//ALU Opcodes
-			-> AND  AluAdrModes	Lable Operator_1
-			-> EOR  AluAdrModes	Lable Operator_1
-			-> ORA  AluAdrModes	Lable Operator_1
-			-> CMP  AluAdrModes	Lable Operator_1
-			-> SBC  AluAdrModes	Lable Operator_1
-			-> LDA  AluAdrModes	Lable Operator_1
-			-> STA  StaAddressingModes	Lable Operator_1
-			-> ASL ShiftAddressingModes	Lable Operator_1		//shift addressing modes
-			-> ROL ShiftAddressingModes	Lable Operator_1
-			-> LSR ShiftAddressingModes Lable Operator_1
-			-> ROR ShiftAddressingModes	Lable Operator_1 
-			-> BCC RelAddressingMode	Lable Operator_1			// Branch Op Codes
-			-> BCS RelAddressingMode	Lable Operator_1 
-			-> BEQ RelAddressingMode	Lable Operator_1 
-			-> BMI RelAddressingMode 	Lable Operator_1
-			-> BNE RelAddressingMode 	Lable Operator_1
-			-> BPL RelAddressingMode 	Lable Operator_1
-			-> BVC RelAddressingMode	Lable Operator_1
-			-> BVS RelAddressingMode 	Lable Operator_1
-			-> BIT BitAddressModes	Lable Operator_1		//BIT opcode
-			-> BRK	Lable Operator_1			//Implied Addressing Mode 
-			-> CLC	Lable Operator_1 
-			-> CLD	Lable Operator_1
-			-> CLI	Lable Operator_1
-			-> CLV	Lable Operator_1
-			-> DEX	Lable Operator_1
-			-> DEY	Lable Operator_1
-			-> INX	Lable Operator_1
-			-> INY	Lable Operator_1
-			-> NOP	Lable Operator_1
-			-> PHA	Lable Operator_1
-			-> PLA	Lable Operator_1
-			-> PHP	Lable Operator_1
-			-> PLP	Lable Operator_1
-			-> RTI	Lable Operator_1
-			-> RTS	Lable Operator_1
-			-> SEC	Lable Operator_1
-			-> SED	Lable Operator_1
-			-> SEI	Lable Operator_1
-			-> TAX	Lable Operator_1
-			-> TAY	Lable Operator_1
-			-> TXA	Lable Operator_1
-			-> TYA	Lable Operator_1
-			-> TXS	Lable Operator_1
-			-> TSX	Lable Operator_1
-			-> INC IncAddressingMOdes	Lable Operator_1		//Inc/Dec Addressing Modes
-			-> DEC IncAddressingMOdes	Lable Operator_1
-			-> JMP JumpAddressingModes	Lable Operator_1	// Jump
-			-> JSR CallAddressingMode	Lable Operator_1		// Jump To Subroutine
-			-> CPX  CPXAddressingMode	Lable Operator_1
-			-> CPY  CPXAddressingMode	Lable Operator_1
-			-> LDX LdxAddressingMode	Lable Operator_1
-			-> LDY LdyAddressingMode	Lable Operator_1
-			-> STX StxAddressingMode	Lable Operator_1
-			-> STY StyAddressingMode	Lable Operator_1
+Instruction	-> ADC  AluAdrModes			//ALU Opcodes
+			-> AND  AluAdrModes	
+			-> EOR  AluAdrModes	
+			-> ORA  AluAdrModes	
+			-> CMP  AluAdrModes	
+			-> SBC  AluAdrModes	
+			-> LDA  AluAdrModes	
+			-> STA  StaAddressingModes	
+			-> ASL ShiftAddressingModes			//shift addressing modes
+			-> ROL ShiftAddressingModes	
+			-> LSR ShiftAddressingModes 
+			-> ROR ShiftAddressingModes	 
+			-> BCC RelAddressingMode				// Branch Op Codes
+			-> BCS RelAddressingMode	 
+			-> BEQ RelAddressingMode	 
+			-> BMI RelAddressingMode 	
+			-> BNE RelAddressingMode 	
+			-> BPL RelAddressingMode 	
+			-> BVC RelAddressingMode	
+			-> BVS RelAddressingMode 	
+			-> BIT BitAddressModes			//BIT opcode
+			-> BRK				//Implied Addressing Mode 
+			-> CLC	 
+			-> CLD	
+			-> CLI	
+			-> CLV	
+			-> DEX	
+			-> DEY	
+			-> INX	
+			-> INY	
+			-> NOP	
+			-> PHA	
+			-> PLA	
+			-> PHP	
+			-> PLP	
+			-> RTI	
+			-> RTS	
+			-> SEC	
+			-> SED	
+			-> SEI	
+			-> TAX	
+			-> TAY	
+			-> TXA	
+			-> TYA	
+			-> TXS	
+			-> TSX	
+			-> INC IncAddressingMOdes			//Inc/Dec Addressing Modes
+			-> DEC IncAddressingMOdes	
+			-> JMP JumpAddressingModes		// Jump
+			-> JSR CallAddressingMode			// Jump To Subroutine
+			-> CPX  CPXAddressingMode	
+			-> CPY  CPXAddressingMode	
+			-> LDX LdxAddressingMode	
+			-> LDY LdyAddressingMode	
+			-> STX StxAddressingMode	
+			-> STY StyAddressingMode	
+			-> .
+			;
+			;
+
+OptLable	-> IDENT LocalGlobal
 			-> .
 			;
 
-
-Lable		-> IDENT Lable	//Highest Precidence Level
-			-> ':' IDENT Lable
-			-> .
+LocalGlobal	-> ':'		//Local
+			-> .		//Global
 			;
 
 //-----------------------------------
@@ -340,7 +354,9 @@ AsmConstant_2	-> '+' BaseAsmConstant AsmConstant_2
 				-> '-' BaseAsmConstant AsmConstant_2
 				-> .
 				;
-BaseAsmConstant	-> IDENT
+BaseAsmConstant	-> LOCAL_LABLE
+				-> GLOBAL_LABLE
+				-> IDENT
 				-> NUMBER
 				-> CHAR_CONSTANT
 				-> '*'
