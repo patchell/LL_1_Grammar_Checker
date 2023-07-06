@@ -1,0 +1,117 @@
+TERMINALS
+	"IDENT" = 256,
+	"VARIDENT",
+	"+",
+	"-",
+	"*",
+	"/",
+	".",
+	"(",
+	")",
+	"=",
+	";",
+	"^",
+	"@",
+	"[",
+	"]",
+	",",
+	"FOR",
+	"TO",
+	"STEP",
+	"DO",
+	"OD",
+	"NUMBER",
+	"INT",
+	"PROC",
+	"BEGIN",
+	"END"
+END_TERMINALS
+
+GRAMMAR
+grammar -> program
+		;
+
+program	-> 'INT'VarList program
+		-> 'PROC' Proc program
+		-> .
+		;
+
+Proc		-> 'IDENT' OptInit Proc_1;
+OptInit		-> '=' BaseConstant
+			-> .
+			;
+Proc_1		-> '('  ')' Proc_2;
+Proc_2		-> 'BEGIN' ProcBody;
+ProcBody	-> statements 'END';
+
+
+statements -> statement statements_1
+            ;
+
+statements_1	-> ';' statement statements_1
+				-> .
+				;
+
+statement	-> 'IDENT' MemContType Assignment
+			-> 'FOR' ForStmt
+          ;
+
+Assignment	-> '=' expr;
+
+expr	-> term expr_1;
+expr_1	-> '+' term expr_1
+		-> '-' term expr_1
+		-> .
+		;
+
+term	-> factor term_1;
+term_1	-> '*' factor term_1
+		-> '/' factor term_1
+		-> .
+		;
+
+factor	-> MemContents
+		-> BaseConstant
+       -> '(' expr ')'
+       ;
+
+ForStmt		-> expr ToPart;
+ToPart		-> 'TO' expr StepPart DoPart;
+StepPart	-> 'STEP' expr 
+			-> .
+			;
+DoPart		-> 'DO' statements 'OD';
+
+MemContents	-> 'IDENT' MemContType;
+MemContType	-> '(' expr ')'
+			-> '^'
+			-> .
+			;
+
+//Constant	-> BaseConstant Constat_1;
+//Constat_1	-> '+' BaseConstant Constat_1
+//			-> .
+//			;
+BaseConstant	-> 'NUMBER'
+				-> '@' MemContents
+				.
+				;
+
+VarList		-> Var VarList_1;
+VarList_1	-> ',' Var VarList_1
+			-> .
+			;
+
+Var			-> Var_1 Var_2;
+Var_1		-> '*' Var_1
+			-> .
+			;
+Var_2		-> 'IDENT' Var_3;
+Var_3		-> '[' Dim ']'
+			-> .
+			;
+
+
+Dim	-> 'NUMBER';
+
+END_GRAMMAR

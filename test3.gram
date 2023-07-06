@@ -1,0 +1,33 @@
+//-------------------------------
+// Standard Example that shows
+// up in just about any text book
+// On the subject of Compilers
+//-------------------------------
+
+TERMINALS
+	"IDENT" = 256,
+	"+",
+	"*",
+	"(",
+	")"
+END_TERMINALS
+
+GRAMMAR
+grammar -> expr;
+
+
+expr	-> term expr_1;
+expr_1	-> '+' term expr_1
+		-> .
+		;
+
+term	-> factor term_1;
+term_1	-> '*' factor term_1
+		-> .
+		;
+
+factor -> 'IDENT'
+       -> '(' expr ')'
+       ;
+
+END_GRAMMAR

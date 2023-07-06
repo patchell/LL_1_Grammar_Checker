@@ -1,0 +1,25 @@
+// Test grammar
+
+FIELDDEF "FUCK" "char *" FIELD_STRING
+FIELDDEF	"ONE"	"int"	FIELD_NUMBER
+
+KEYWORD	IDENT = 256 "IDENT" FIELDS
+KEYWORD	NUMBER "NUMBER" FIELDS
+
+GRAMMAR
+grammar -> expr;
+
+
+expr	-> term expr_1;
+expr_1	-> '+' term expr_1
+		-> .
+		;
+
+term	-> factor term_1;
+term_1	-> '*' factor term_1
+		-> .
+		;
+
+factor -> 'IDENT'
+       -> '(' expr ')'
+       ;

@@ -1,0 +1,349 @@
+//-------------------------------
+// Grammar for the 6502 assmebler
+//
+// An assembly line of code generaslly
+// consists of 3 parts:
+// 1. Lable
+// 2. Operator
+// 3. Operand
+//-------------------------------
+
+TERMINALS
+	// Opecodes
+"ADC" = 256,
+"AND",
+"ASL",
+"BCC",
+"BCS",
+"BEQ",
+"BMI",
+"BNE",
+"BPL",
+"BVC",
+"BVS",
+"BIT",
+"BRK",
+"CLC",
+"CLD",
+"CLI",
+"CLV",
+"CMP",
+"CPX",
+"CPY",
+"DEC",
+"DEX",
+"DEY",
+"EOR",
+"INC",
+"INX",
+"INY",
+"JMP",
+"JSR",
+"LDA",
+"LDX",
+"LDY",
+"LSR",
+"NOP",
+"ORA",
+"PHA",
+"PLA",
+"PHP",
+"PLP",
+"ROL",
+"ROR",
+"RTI",
+"RTS",
+"SBC",
+"STA",
+"SEC",
+"SED",
+"SEI",
+"STX",
+"STY",
+"TAX",
+"TAY",
+"TXA",
+"TYA",
+"TXS",
+"TSX",
+"AREG",
+"XREG",
+"YREG",
+"IDENT",
+"LABLE",
+"STRING",
+"HEX_NUMBER",
+"CHAR_CONSTANT",
+"SYMBOL",
+"NUMBER",
+"ORG",
+"DB",
+"DW",
+"DL",
+"DS",
+"INCLUDE",
+"SECTIONTOKEN",
+"NAME",
+"SIZE",
+"START",
+"MODE",
+"READ_WRITE",
+"READ_ONLY",
+"R6502",
+"PROCESSOR",
+"WD65C02",
+"WD65C816",
+"VALUE",
+"PROC",
+"EPROC"
+
+
+GRAMMAR
+
+As65	-> CodeLines;
+
+CodeLines		-> DefineStorage DefineMemory_1;
+DefineMemory_1	-> DB AsmConstList DefineStorage DefineMemory_1 
+				-> DW AsmConstList DefineStorage DefineMemory_1
+				-> DL AsmConstList DefineStorage DefineMemory_1
+				-> .
+				;
+
+DefineStorage	-> Proceedure DefineStorage_1;
+DefineStorage_1	-> DS AsmConstant Proceedure DefineStorage_1
+				-> .
+				;
+
+Proceedure		-> Section Proceedure_1;
+Proceedure_1	-> PROC CodeLines EPROC Section Proceedure_1
+				-> .
+				;
+
+Section			-> Org Section_1;
+Section_1		-> SECTIONTOKEN SectionAttributes Org Section_1
+				-> .
+				;
+SectionAttributes	-> SectionAtribute SectionAttributes_1;
+SectionAttributes_1	-> ',' SectionAtribute SectionAttributes_1
+					-> .
+					;
+
+SectionAtribute	-> NAME '=' STRING
+				-> SIZE '=' NUMBER
+				-> .
+				;
+
+Org				-> Processor  Org_1;
+Org_1			-> ORG NUMBER Processor Org_1
+				-> .
+				;
+
+Processor		-> Operator Processor_1;
+Processor_1		-> PROCESSOR ProcessorType Operator Processor_1
+				-> .
+				;
+ProcessorType-> R6502
+			-> WD65C02
+			-> WD65C816
+			;
+
+Operator	-> Lable  Operator_1;
+Operator_1	-> ADC  AluAdrModes	Lable Operator_1		//ALU Opcodes
+			-> AND  AluAdrModes	Lable Operator_1
+			-> EOR  AluAdrModes	Lable Operator_1
+			-> ORA  AluAdrModes	Lable Operator_1
+			-> CMP  AluAdrModes	Lable Operator_1
+			-> SBC  AluAdrModes	Lable Operator_1
+			-> LDA  AluAdrModes	Lable Operator_1
+			-> STA  StaAddressingModes	Lable Operator_1
+			-> ASL ShiftAddressingModes	Lable Operator_1		//shift addressing modes
+			-> ROL ShiftAddressingModes	Lable Operator_1
+			-> LSR ShiftAddressingModes Lable Operator_1
+			-> ROR ShiftAddressingModes	Lable Operator_1 
+			-> BCC RelAddressingMode	Lable Operator_1			// Branch Op Codes
+			-> BCS RelAddressingMode	Lable Operator_1 
+			-> BEQ RelAddressingMode	Lable Operator_1 
+			-> BMI RelAddressingMode 	Lable Operator_1
+			-> BNE RelAddressingMode 	Lable Operator_1
+			-> BPL RelAddressingMode 	Lable Operator_1
+			-> BVC RelAddressingMode	Lable Operator_1
+			-> BVS RelAddressingMode 	Lable Operator_1
+			-> BIT BitAddressModes	Lable Operator_1		//BIT opcode
+			-> BRK	Lable Operator_1			//Implied Addressing Mode 
+			-> CLC	Lable Operator_1 
+			-> CLD	Lable Operator_1
+			-> CLI	Lable Operator_1
+			-> CLV	Lable Operator_1
+			-> DEX	Lable Operator_1
+			-> DEY	Lable Operator_1
+			-> INX	Lable Operator_1
+			-> INY	Lable Operator_1
+			-> NOP	Lable Operator_1
+			-> PHA	Lable Operator_1
+			-> PLA	Lable Operator_1
+			-> PHP	Lable Operator_1
+			-> PLP	Lable Operator_1
+			-> RTI	Lable Operator_1
+			-> RTS	Lable Operator_1
+			-> SEC	Lable Operator_1
+			-> SED	Lable Operator_1
+			-> SEI	Lable Operator_1
+			-> TAX	Lable Operator_1
+			-> TAY	Lable Operator_1
+			-> TXA	Lable Operator_1
+			-> TYA	Lable Operator_1
+			-> TXS	Lable Operator_1
+			-> TSX	Lable Operator_1
+			-> INC IncAddressingMOdes	Lable Operator_1		//Inc/Dec Addressing Modes
+			-> DEC IncAddressingMOdes	Lable Operator_1
+			-> JMP JumpAddressingModes	Lable Operator_1	// Jump
+			-> JSR CallAddressingMode	Lable Operator_1		// Jump To Subroutine
+			-> CPX  CPXAddressingMode	Lable Operator_1
+			-> CPY  CPXAddressingMode	Lable Operator_1
+			-> LDX LdxAddressingMode	Lable Operator_1
+			-> LDY LdyAddressingMode	Lable Operator_1
+			-> STX StxAddressingMode	Lable Operator_1
+			-> STY StyAddressingMode	Lable Operator_1
+			-> .
+			;
+
+
+Lable		-> IDENT Lable	//Highest Precidence Level
+			-> ':' IDENT Lable
+			-> .
+			;
+
+//-----------------------------------
+//ALU Addressing Mode
+//-----------------------------------
+
+AluAdrModes		-> '#' ConstUpperLower
+				-> '(' Indirect
+				-> AsmConstant OptIndexReg
+				;
+Indirect	-> AsmConstant  Indirect_1;
+Indirect_1	-> ')' ',' YREG
+			-> ',' XREG ')'
+			;
+
+//---------------------------------------------
+// STA addressing mode
+//---------------------------------------------
+StaAddressingModes	-> AsmConstant OptIndexReg
+					-> '(' Indirect
+					;
+
+//-----------------------------------------
+// ASL LSR ROR and ROL addressing modes
+//-----------------------------------------
+
+ShiftAddressingModes	-> AREG
+						-> AsmConstant OptXReg
+						;
+
+//------------------------------------------
+// Branch Instructions Addressing Mode
+//------------------------------------------
+RelAddressingMode	-> AsmConstant;
+
+//------------------------------------------
+// BIT Instructions Addressing Mode
+//------------------------------------------
+
+BitAddressModes	-> AsmConstant;
+
+//------------------------------------------
+// INC DEC Instructions Addressing Mode
+//------------------------------------------
+
+IncAddressingMOdes	-> AsmConstant OptXReg;
+
+//------------------------------------------
+// JMP Instructions Addressing Mode
+//------------------------------------------
+
+JumpAddressingModes	-> AsmConstant
+					-> '(' AsmConstant ')'
+					;
+
+//------------------------------------------
+// JSR Instructions Addressing Mode
+//------------------------------------------
+
+CallAddressingMode	-> AsmConstant;
+
+//------------------------------------------
+// LDX Instructions Addressing Mode
+//------------------------------------------
+
+LdxAddressingMode	-> AsmConstant OptYReg
+					-> '#' AsmConstant
+					;
+//------------------------------------------
+// CPX Instructions Addressing Mode
+//------------------------------------------
+
+CPXAddressingMode	-> AsmConstant
+					-> '#' AsmConstant
+					;
+
+//------------------------------------------
+// STX Instructions Addressing Mode
+//------------------------------------------
+
+StxAddressingMode	-> AsmConstant OptYReg;
+
+//------------------------------------------
+// LDY Instructions Addressing Mode
+//------------------------------------------
+
+LdyAddressingMode	-> AsmConstant OptXReg
+					-> '#' AsmConstant
+					;
+
+//------------------------------------------
+// STY Instructions Addressing Mode
+//------------------------------------------
+
+StyAddressingMode	-> AsmConstant OptXReg;
+
+OptIndexReg		-> ',' OptIndexReg_1
+				-> .
+				;
+OptIndexReg_1	-> XREG
+				-> YREG
+				;
+
+OptXReg			-> ',' XREG
+				-> .
+				;
+
+OptYReg			-> ',' YREG
+				-> .
+				;
+
+AsmConstList	-> AsmConstant AsmConstList_1;
+AsmConstList_1	-> ',' AsmConstant AsmConstList_1
+				;
+
+AsmConstant		-> ConstUpperLower String_1;
+String_1		-> STRING
+				-> .
+				;
+ConstUpperLower	-> '>' ConstUpperLower
+				-> '<' ConstUpperLower
+				-> AsmConstant_1
+				;
+
+AsmConstant_1	-> BaseAsmConstant AsmConstant_2;
+AsmConstant_2	-> '+' BaseAsmConstant AsmConstant_2
+				-> '-' BaseAsmConstant AsmConstant_2
+				-> .
+				;
+BaseAsmConstant	-> IDENT
+				-> NUMBER
+				-> CHAR_CONSTANT
+				-> '*'
+				-> .
+				;
+
