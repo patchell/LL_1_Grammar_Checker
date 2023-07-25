@@ -117,7 +117,7 @@ DefineMemory_1	-> DB AsmConstList DefineStorage DefineMemory_1
 				;
 
 DefineStorage	-> Proceedure DefineStorage_1;
-DefineStorage_1	-> DS AsmConstant Proceedure DefineStorage_1
+00000000000 DefineStorage_1	-> DS AsmConstant Proceedure DefineStorage_1
 				-> .
 				;
 
