@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	FILE* pLog;
 	char aLogFile[256];
 
-	fprintf(stderr, "CkLL1 Ver 1.0.0\n");
+	fprintf(stderr, "CkLL1 Ver 1.0.1\n");
 	if (argc == 1)
 	{
 		fprintf(stderr, "Missing Source File\n");
