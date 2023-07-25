@@ -5,7 +5,7 @@ As65
 CodeLines
  -> CodeLine CodeLines_1
 CodeLines_1
- -> EOL CodeLine CodeLines_1
+ -> ; CodeLine CodeLines_1
  -> e
 CodeLine
  -> OptLable AsmStatement
@@ -29,7 +29,11 @@ Proceedure_1
 Section
  -> Org Section_1
 Section_1
- -> SECTIONTOKEN SectionAttributes Org Section_1
+ -> SECTION Section_2 Org Section_1
+ -> e
+Section_2
+ -> SECTION_NAME
+ -> IDENT [ SectionAttributes ]
  -> e
 SectionAttributes
  -> SectionAtribute SectionAttributes_1
@@ -37,9 +41,13 @@ SectionAttributes_1
  -> , SectionAtribute SectionAttributes_1
  -> e
 SectionAtribute
- -> NAME = STRING
- -> SIZE = NUMBER
+ -> START = AsmConstant
+ -> SIZE = AsmConstant
+ -> MODE = Modes
  -> e
+Modes
+ -> READ_ONLY
+ -> READ_WRITE
 Org
  -> Processor Org_1
 Org_1
@@ -105,8 +113,8 @@ Instruction
  -> DEC IncAddressingMOdes
  -> JMP JumpAddressingModes
  -> JSR CallAddressingMode
- -> CPX CPXAddressingMode
- -> CPY CPXAddressingMode
+ -> CPX CPX_CPY_AddressingMode
+ -> CPY CPX_CPY_AddressingMode
  -> LDX LdxAddressingMode
  -> LDY LdyAddressingMode
  -> STX StxAddressingMode
@@ -114,12 +122,14 @@ Instruction
  -> e
 OptLable
  -> IDENT LocalGlobal
+ -> LOCAL_LABLE :
+ -> GLOBAL_LABLE
  -> e
 LocalGlobal
  -> :
  -> e
 AluAdrModes
- -> # ConstUpperLower
+ -> # AsmConstant
  -> ( Indirect
  -> AsmConstant OptIndexReg
 Indirect
@@ -147,7 +157,7 @@ CallAddressingMode
 LdxAddressingMode
  -> AsmConstant OptYReg
  -> # AsmConstant
-CPXAddressingMode
+CPX_CPY_AddressingMode
  -> AsmConstant
  -> # AsmConstant
 StxAddressingMode
@@ -170,17 +180,14 @@ OptYReg
  -> , YREG
  -> e
 AsmConstList
+ -> STRING
  -> AsmConstant AsmConstList_1
 AsmConstList_1
  -> , AsmConstant AsmConstList_1
-AsmConstant
- -> ConstUpperLower String_1
-String_1
- -> STRING
  -> e
-ConstUpperLower
- -> > ConstUpperLower
- -> < ConstUpperLower
+AsmConstant
+ -> > AsmConstant_1
+ -> < AsmConstant_1
  -> AsmConstant_1
 AsmConstant_1
  -> BaseAsmConstant AsmConstant_2
@@ -200,27 +207,27 @@ TERMINALS['Terminals'] { 'ADC','AND','ASL','BCC','BCS','BEQ','BMI','BNE','BPL','
 ,'BVS','BIT','BRK','CLC','CLD','CLI','CLV','CMP','CPX','CPY','DEC','DEX','DEY','EOR'
 ,'INC','INX','INY','JMP','JSR','LDA','LDX','LDY','LSR','NOP','ORA','PHA','PLA','PHP'
 ,'PLP','ROL','ROR','RTI','RTS','SBC','STA','SEC','SED','SEI','STX','STY','TAX','TAY'
-,'TXA','TYA','TXS','TSX','AREG','XREG','YREG','IDENT','LOCAL_LABLE','GLOBAL_LABLE'
-,'STRING','HEX_NUMBER','CHAR_CONSTANT','SYMBOL','NUMBER','ORG','DB','DW','DL','DS'
-,'INCLUDE','SECTIONTOKEN','NAME','SIZE','START','MODE','READ_WRITE','READ_ONLY','R6502'
-,'PROCESSOR','WD65C02','WD65C816','VALUE','PROC','EPROC','EOL',',','=',':','#','('
-,')','>','<','+','-','*','e','$' }
+,'TXA','TYA','TXS','TSX','IDENT','LOCAL_LABLE','GLOBAL_LABLE','STRING','CHAR_CONSTANT'
+,'NUMBER','AREG','XREG','YREG','ORG','DB','DW','DL','DS','SECTION','SECTION_NAME'
+,'SIZE','START','READ_WRITE','MODE','READ_ONLY','R6502','PROCESSOR','WD65C02','WD65C816'
+,'PROC','EPROC','EOL',';','[',']',',','=',':','#','(',')','>','<','+','-','*','e'
+,'$' }
 NONTERMINALS['Non Terminals'] { 'As65','CodeLines','CodeLines_1','CodeLine','AsmStatement'
 ,'DefineMemory_1','DefineStorage','DefineStorage_1','Proceedure','Proceedure_1','Section'
-,'Section_1','SectionAttributes','SectionAttributes_1','SectionAtribute','Org','Org_1'
-,'Processor','Processor_1','ProcessorType','Instruction','OptLable','LocalGlobal'
-,'AluAdrModes','Indirect','Indirect_1','StaAddressingModes','ShiftAddressingModes'
+,'Section_1','Section_2','SectionAttributes','SectionAttributes_1','SectionAtribute'
+,'Modes','Org','Org_1','Processor','Processor_1','ProcessorType','Instruction','OptLable'
+,'LocalGlobal','AluAdrModes','Indirect','Indirect_1','StaAddressingModes','ShiftAddressingModes'
 ,'RelAddressingMode','BitAddressModes','IncAddressingMOdes','JumpAddressingModes'
-,'CallAddressingMode','LdxAddressingMode','CPXAddressingMode','StxAddressingMode'
+,'CallAddressingMode','LdxAddressingMode','CPX_CPY_AddressingMode','StxAddressingMode'
 ,'LdyAddressingMode','StyAddressingMode','OptIndexReg','OptIndexReg_1','OptXReg','OptYReg'
-,'AsmConstList','AsmConstList_1','AsmConstant','String_1','ConstUpperLower','AsmConstant_1'
-,'AsmConstant_2','BaseAsmConstant' }
+,'AsmConstList','AsmConstList_1','AsmConstant','AsmConstant_1','AsmConstant_2','BaseAsmConstant'
+ }
 *********** Build Nullable Set **********
 ****************Create NOT nullable set ************************
 ----- Calc First Sets------
 FIRST['As65'] { }
 FIRST['CodeLines'] { }
-FIRST['CodeLines_1'] { 'e' }
+FIRST['CodeLines_1'] { ';','e' }
 FIRST['CodeLine'] { }
 FIRST['AsmStatement'] { }
 FIRST['DefineMemory_1'] { 'e' }
@@ -230,9 +237,11 @@ FIRST['Proceedure'] { }
 FIRST['Proceedure_1'] { 'e' }
 FIRST['Section'] { }
 FIRST['Section_1'] { 'e' }
+FIRST['Section_2'] { 'e' }
 FIRST['SectionAttributes'] { 'e' }
 FIRST['SectionAttributes_1'] { ',','e' }
 FIRST['SectionAtribute'] { 'e' }
+FIRST['Modes'] { }
 FIRST['Org'] { }
 FIRST['Org_1'] { 'e' }
 FIRST['Processor'] { 'e' }
@@ -252,7 +261,7 @@ FIRST['IncAddressingMOdes'] { '>','<' }
 FIRST['JumpAddressingModes'] { '(','>','<' }
 FIRST['CallAddressingMode'] { '>','<' }
 FIRST['LdxAddressingMode'] { '#','>','<' }
-FIRST['CPXAddressingMode'] { '#','>','<' }
+FIRST['CPX_CPY_AddressingMode'] { '#','>','<' }
 FIRST['StxAddressingMode'] { '>','<' }
 FIRST['LdyAddressingMode'] { '#','>','<' }
 FIRST['StyAddressingMode'] { '>','<' }
@@ -261,10 +270,8 @@ FIRST['OptIndexReg_1'] { }
 FIRST['OptXReg'] { ',','e' }
 FIRST['OptYReg'] { ',','e' }
 FIRST['AsmConstList'] { '>','<' }
-FIRST['AsmConstList_1'] { ',' }
+FIRST['AsmConstList_1'] { ',','e' }
 FIRST['AsmConstant'] { '>','<' }
-FIRST['String_1'] { 'e' }
-FIRST['ConstUpperLower'] { '>','<' }
 FIRST['AsmConstant_1'] { 'e','*' }
 FIRST['AsmConstant_2'] { '+','-','e' }
 FIRST['BaseAsmConstant'] { '*','e' }
@@ -273,24 +280,26 @@ FIRST['BaseAsmConstant'] { '*','e' }
 FOLLOW['As65'] { '$' }
 FOLLOW['CodeLines'] { '$' }
 FOLLOW['CodeLines_1'] { '$' }
-FOLLOW['CodeLine'] { '$' }
-FOLLOW['AsmStatement'] { '$' }
-FOLLOW['DefineMemory_1'] { '$' }
-FOLLOW['DefineStorage'] { '$' }
-FOLLOW['DefineStorage_1'] { '$' }
-FOLLOW['Proceedure'] { '$' }
-FOLLOW['Proceedure_1'] { '$' }
-FOLLOW['Section'] { '$' }
-FOLLOW['Section_1'] { '$' }
-FOLLOW['SectionAttributes'] { }
-FOLLOW['SectionAttributes_1'] { }
-FOLLOW['SectionAtribute'] { ',' }
-FOLLOW['Org'] { '$' }
-FOLLOW['Org_1'] { '$' }
-FOLLOW['Processor'] { '$' }
-FOLLOW['Processor_1'] { '$' }
+FOLLOW['CodeLine'] { ';','$' }
+FOLLOW['AsmStatement'] { ';','$' }
+FOLLOW['DefineMemory_1'] { ';','$' }
+FOLLOW['DefineStorage'] { ';','$' }
+FOLLOW['DefineStorage_1'] { ';','$' }
+FOLLOW['Proceedure'] { ';','$' }
+FOLLOW['Proceedure_1'] { ';','$' }
+FOLLOW['Section'] { ';','$' }
+FOLLOW['Section_1'] { ';','$' }
+FOLLOW['Section_2'] { }
+FOLLOW['SectionAttributes'] { ']' }
+FOLLOW['SectionAttributes_1'] { ']' }
+FOLLOW['SectionAtribute'] { ',',']' }
+FOLLOW['Modes'] { }
+FOLLOW['Org'] { ';','$' }
+FOLLOW['Org_1'] { ';','$' }
+FOLLOW['Processor'] { ';','$' }
+FOLLOW['Processor_1'] { ';','$' }
 FOLLOW['ProcessorType'] { }
-FOLLOW['Instruction'] { '$' }
+FOLLOW['Instruction'] { ';','$' }
 FOLLOW['OptLable'] { }
 FOLLOW['LocalGlobal'] { }
 FOLLOW['AluAdrModes'] { }
@@ -304,7 +313,7 @@ FOLLOW['IncAddressingMOdes'] { }
 FOLLOW['JumpAddressingModes'] { }
 FOLLOW['CallAddressingMode'] { }
 FOLLOW['LdxAddressingMode'] { }
-FOLLOW['CPXAddressingMode'] { }
+FOLLOW['CPX_CPY_AddressingMode'] { }
 FOLLOW['StxAddressingMode'] { }
 FOLLOW['LdyAddressingMode'] { }
 FOLLOW['StyAddressingMode'] { }
@@ -315,11 +324,9 @@ FOLLOW['OptYReg'] { }
 FOLLOW['AsmConstList'] { }
 FOLLOW['AsmConstList_1'] { }
 FOLLOW['AsmConstant'] { ',',')' }
-FOLLOW['String_1'] { ',',')' }
-FOLLOW['ConstUpperLower'] { ',',')' }
 FOLLOW['AsmConstant_1'] { ',',')' }
 FOLLOW['AsmConstant_2'] { ',',')' }
 FOLLOW['BaseAsmConstant'] { '+','-',',',')' }
 ---------------- Create Parse Table --------------
-Table Entries = 94
+Table Entries = 103
 ------------ Check For Conflicts-------------

@@ -2,28 +2,7 @@
 
 CRecDecParGen::CRecDecParGen():CParser()
 {
-	int i;
-
 	m_pLog = 0;
-	m_pParserCppFile = 0;
-	m_pParserHeaderFile = 0;
-	m_pLexerCppFile = 0;
-	m_pLexerHeaderFile = 0;
-	m_pTokenCppFile = 0;
-	m_pTokenHeaderFile = 0;
-	for (i = 0; i < 256; ++i)
-	{
-		m_aLexerCppFile[i] = 0;
-		m_aLexerHeaderFile[i] = 0;
-		m_aLexerClassName[i] = 0;
-		m_aParserCppFile[i] = 0;
-		m_aParserHeaderFile[i] = 0;
-		m_aParserClassName[i] = 0;
-		m_aTokenClassName[i] = 0;
-		m_aTokenCppName[i] = 0;
-		m_aTokenHeaderName[i] = 0;
-		m_aTokenEnumClassName[i] = 0;
-	}
 }
 
 CRecDecParGen::~CRecDecParGen()
@@ -42,12 +21,6 @@ BOOL CRecDecParGen::Create(FILE* pIn,  FILE* pLog)
 void CRecDecParGen::CloseFiles()
 {
 	fclose(m_pLog);
-	if (m_pLexerCppFile) fclose(m_pLexerCppFile);
-	if (m_pLexerHeaderFile) fclose(m_pLexerHeaderFile);
-	if (m_pParserCppFile) fclose(m_pParserCppFile);
-	if (m_pParserHeaderFile) fclose(m_pParserHeaderFile);
-	if (m_pParserHeaderFile) fclose(m_pParserHeaderFile);
-	if (m_pParserHeaderFile) fclose(m_pParserHeaderFile);
 	CParser::CloseFiles();
 }
 

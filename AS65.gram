@@ -67,35 +67,31 @@ TERMINALS
 "TXS",
 "TSX",
 
-"AREG",
-"XREG",
-"YREG",
 "IDENT",
 "LOCAL_LABLE",
 "GLOBAL_LABLE",
 "STRING",
-"HEX_NUMBER",
 "CHAR_CONSTANT",
-"SYMBOL",
 "NUMBER",
+"AREG",
+"XREG",
+"YREG",
 "ORG",
 "DB",
 "DW",
 "DL",
 "DS",
-"INCLUDE",
-"SECTIONTOKEN",
-"NAME",
+"SECTION",
+"SECTION_NAME",
 "SIZE",
 "START",
-"MODE",
 "READ_WRITE",
+"MODE",
 "READ_ONLY",
 "R6502",
 "PROCESSOR",
 "WD65C02",
 "WD65C816",
-"VALUE",
 "PROC",
 "EPROC",
 "EOL"
@@ -106,7 +102,7 @@ GRAMMAR
 As65	-> CodeLines;
 
 CodeLines		-> CodeLine CodeLines_1;
-CodeLines_1		-> EOL CodeLine CodeLines_1
+CodeLines_1		-> ';' CodeLine CodeLines_1
 				-> .
 				;
 
@@ -131,18 +127,28 @@ Proceedure_1	-> PROC CodeLines EPROC Section Proceedure_1
 				;
 
 Section			-> Org Section_1;
-Section_1		-> SECTIONTOKEN SectionAttributes Org Section_1
+Section_1		-> SECTION Section_2 Org Section_1
 				-> .
 				;
+Section_2		-> SECTION_NAME
+				-> IDENT '[' SectionAttributes ']'
+				-> .
+				;
+
 
 SectionAttributes	-> SectionAtribute SectionAttributes_1;
 SectionAttributes_1	-> ',' SectionAtribute SectionAttributes_1
 					-> .
 					;
 
-SectionAtribute	-> NAME '=' STRING
-				-> SIZE '=' NUMBER
+SectionAtribute	-> START '=' AsmConstant
+				-> SIZE '=' AsmConstant
+				-> MODE '=' Modes
 				-> .
+				;
+
+Modes			-> READ_ONLY
+				-> READ_WRITE
 				;
 
 Org				-> Processor  Org_1;
@@ -209,17 +215,18 @@ Instruction	-> ADC  AluAdrModes			//ALU Opcodes
 			-> DEC IncAddressingMOdes	
 			-> JMP JumpAddressingModes		// Jump
 			-> JSR CallAddressingMode			// Jump To Subroutine
-			-> CPX  CPXAddressingMode	
-			-> CPY  CPXAddressingMode	
+			-> CPX  CPX_CPY_AddressingMode	
+			-> CPY  CPX_CPY_AddressingMode	
 			-> LDX LdxAddressingMode	
 			-> LDY LdyAddressingMode	
 			-> STX StxAddressingMode	
 			-> STY StyAddressingMode	
 			-> .
 			;
-			;
 
 OptLable	-> IDENT LocalGlobal
+			-> LOCAL_LABLE ':'
+			-> GLOBAL_LABLE
 			-> .
 			;
 
@@ -231,7 +238,7 @@ LocalGlobal	-> ':'		//Local
 //ALU Addressing Mode
 //-----------------------------------
 
-AluAdrModes		-> '#' ConstUpperLower
+AluAdrModes		-> '#' AsmConstant
 				-> '(' Indirect
 				-> AsmConstant OptIndexReg
 				;
@@ -294,10 +301,10 @@ LdxAddressingMode	-> AsmConstant OptYReg
 					-> '#' AsmConstant
 					;
 //------------------------------------------
-// CPX Instructions Addressing Mode
+// CPX & CPY Instructions Addressing Mode
 //------------------------------------------
 
-CPXAddressingMode	-> AsmConstant
+CPX_CPY_AddressingMode	-> AsmConstant
 					-> '#' AsmConstant
 					;
 
@@ -336,16 +343,15 @@ OptYReg			-> ',' YREG
 				-> .
 				;
 
-AsmConstList	-> AsmConstant AsmConstList_1;
-AsmConstList_1	-> ',' AsmConstant AsmConstList_1
+AsmConstList	-> STRING
+				-> AsmConstant AsmConstList_1
 				;
-
-AsmConstant		-> ConstUpperLower String_1;
-String_1		-> STRING
+AsmConstList_1	-> ',' AsmConstant AsmConstList_1
 				-> .
 				;
-ConstUpperLower	-> '>' ConstUpperLower
-				-> '<' ConstUpperLower
+
+AsmConstant		-> '>' AsmConstant_1	//Lower Part
+				-> '<' AsmConstant_1	//Upper Part
 				-> AsmConstant_1
 				;
 
@@ -359,7 +365,7 @@ BaseAsmConstant	-> LOCAL_LABLE
 				-> IDENT
 				-> NUMBER
 				-> CHAR_CONSTANT
-				-> '*'
+				-> '*'				//current location counter
 				-> .
 				;
 
