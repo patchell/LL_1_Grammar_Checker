@@ -2,12 +2,13 @@
 
 class CParser
 {
+	bool m_bLog;
 	CStack m_ValueStack;
 	CSymbol* m_pCurrentNonTerminal;
 	CRule* m_pCurrentRule;
 	CLexer m_Lex;
 	BOOL m_FirstGrammarSymbol;
-	int m_AutoIncTokenValue;;
+	int m_AutoIncTokenValue;
 public:
 	CParser();
 	virtual ~CParser();

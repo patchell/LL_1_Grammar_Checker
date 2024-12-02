@@ -357,6 +357,7 @@ CToken::LLRD_Token CLexer::Lex()
 					LexUnGet(c);
 				}
 			}	//END OF collecting characters for word
+
 			//---------------------------------
 			// First check to see if it is a
 			// Keyword
@@ -387,6 +388,7 @@ CToken::LLRD_Token CLexer::Lex()
 					//-------------------------------------
 					m_pLexSymbol = new CSymbol;
 					m_pLexSymbol->Create(m_aLexBuff, CSymbol::TokenType::NOT_TOKEN);
+					m_pLexSymbol->SetLineWhereDefined(GetLineNumber());
 					TokenValue = CToken::LLRD_Token::IDENT;
 					m_pLexSymbol->SetTokenValue(CToken::LLRD_Token::IDENT, CSymbol::TokenType::PREDEFINED);
 					Loop = FALSE;

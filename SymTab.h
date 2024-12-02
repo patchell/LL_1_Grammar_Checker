@@ -32,8 +32,12 @@ public:
 	int CheckForUnUsedNonTerminala(FILE* pOut);
 	int CheckForOrphans(FILE* pOut, CSet* pSetNonTerminals);
 	BOOL CheckOrphans_SearchRules(FILE* pOut, CSet* pSetNonTerminals, CLexeme* pLexeme);
-	CSet* GetNonTerminalSet() { return &m_NonTerminals; }
-	CSet* GetTerminalSet() { return &m_Terminals; }
+	CSet* GetNonTerminalSet() { 
+		return &m_NonTerminals; 
+	}
+	CSet* GetTerminalSet() { 
+		return &m_Terminals; 
+	}
 	//-----------------------------------
 	// Debug
 	//-----------------------------------

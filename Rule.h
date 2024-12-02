@@ -14,7 +14,12 @@ public:
 	virtual ~CRule();
 	BOOL Create(CSymbol* pLeftHandSide);
 	CSymbol* GetLHS() { return m_pLHS; }
-	BOOL FIRST(FILE *pOut,CLexeme* pY1, CSet& FirstSet);
+	BOOL FIRST(
+		FILE *pOut,
+		CLexeme* pY1, 
+		CSet& FirstSet,
+		BOOL dbTag
+	);
     BOOL FIRST_Y1Y2__Yk(
 		FILE* pOut,
 		CLexeme* pY11, 

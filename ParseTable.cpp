@@ -128,7 +128,7 @@ BOOL CParseTable::Rule1(FILE* pOut, CLexeme* pY)
 	while (pProductionRule)
 	{
 		pProductionRule->Print(pOut,TRUE,FALSE,0);
-		pProductionRule->FIRST(NULL, pProductionRule->GetHead(), FIRSTy);
+		pProductionRule->FIRST(NULL, pProductionRule->GetHead(), FIRSTy, TRUE);
 		FIRSTy.Print(pOut, FALSE, TRUE, 5);
 		pSetMember = FIRSTy.GetHead();
 		while (pSetMember)
@@ -188,7 +188,12 @@ BOOL CParseTable::Rule2(FILE* pOut, CLexeme* pY)
 		if(pOut) fprintf(pOut, "--------");
 		pProductionRule->Print(pOut, TRUE, FALSE, 0);
 		if(pOut) fprintf(pOut, "--------\n");
-		pProductionRule->FIRST(pOut, pProductionRule->GetHead(), FIRSTy);
+		pProductionRule->FIRST(
+			pOut, 
+			pProductionRule->GetHead(), 
+			FIRSTy,
+			TRUE
+		);
 		if (FIRSTy.Contains(pOut, CLexer::GetEmpty()))
 		{
 			pFollowY = pProductionRule->GetLHS()->GetFollowSet();

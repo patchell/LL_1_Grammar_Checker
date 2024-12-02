@@ -22,12 +22,17 @@ BOOL CRule::Create(CSymbol* pLHS)
 }
 
 
-BOOL CRule::FIRST(FILE* pOut, CLexeme *pY1, CSet& FirstSet)
+BOOL CRule::FIRST(
+	FILE* pOut, 
+	CLexeme *pY1, 
+	CSet& FirstSet,
+	BOOL dbTag
+)
 {
 	//-----------------------------------
 	//	1.	If X is a terminal then 
 	//			First(X) is just X!
-	//	2.	If there is a Production
+	//	2.	If there is a Production (i.e. Nullable)
 	//			 X -> e then add e to 
 	//			first(X)
 	//	3.	If there is a Production 
@@ -43,7 +48,6 @@ BOOL CRule::FIRST(FILE* pOut, CLexeme *pY1, CSet& FirstSet)
 	//			First(Y1Y2..Yk) is 
 	//			everything in First(Y1) 
 	//			< except for epsilon > 
-	// 
 	//			as well as everything in First(Y2..Yk)
 	//		3.	If First(Y1) First(Y2)..
 	//			First(Yk) all contain epsion 
@@ -57,19 +61,43 @@ BOOL CRule::FIRST(FILE* pOut, CLexeme *pY1, CSet& FirstSet)
 
 	if (pY1->IsEmpty())	//Rule 2.
 	{
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "             Rule 2:");
+		}
 		bChanged = FirstSet.Union(pOut,CLexer::GetEmpty()->GetFirstSet());
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "%s\n", bChanged?"Changed":"Not Changed");
+		}
 	}
 	else if (pY1->GetFirstSet()->DoesNotContain(pOut, CLexer::GetEmpty()))
 	{
 		//Rule 4.1
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "             Rule 4.1\n");
+		}
 		bChanged = FirstSet.Union(pOut, pY1->GetFirstSet());
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "Rule 4.1:%s\n", bChanged ? "Changed" : "Not Changed");
+		}
 	}
 	else
 	{
 		//Rule 4.2
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "             Rule 4.2");
+		}
 		if (pY1->GetFirstSet()->Contains(pOut, CLexer::GetEmpty()))
 		{
 			bChanged = FIRST_Y1Y2__Yk(pOut, pY1, FirstSet);
+		}
+		if (dbTag && pOut)
+		{
+			fprintf(pOut, "%s\n", bChanged ? "Changed" : "Not Changed");
 		}
 	}
 	//Rule 4.3

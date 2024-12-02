@@ -23,7 +23,9 @@ public:
 	//--------------------------
 	// Attributes
 	//--------------------------
-	CLexeme* GetSetMemberLexeme() { return m_pLexeme; }
+	CLexeme* GetSetMemberLexeme() { 
+		return m_pLexeme; 
+	}
 	CSymbol* GetSetMemberSymbol() {
 		return GetSetMemberLexeme()->GetLexemeSymbol();
 	}

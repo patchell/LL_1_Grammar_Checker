@@ -93,9 +93,9 @@ BOOL CSet::Union(CSet* pSetB, CSet& SetC)
 	rV2 = SetC.Copy(pSetB);
 	bChanged = rV1 || rV2;
 	SetC.Print(LogFile(), FALSE, FALSE, 0);
-	fprintf(LogFile(), " <= ");
+//	fprintf(LogFile(), " <= ");
 	Print(LogFile(), FALSE, FALSE, 0);
-	fprintf(LogFile(), " U ");
+//	fprintf(LogFile(), " U ");
 	pSetB->Print(LogFile(), FALSE, TRUE);
 	return bChanged;
 }
@@ -226,6 +226,7 @@ BOOL CSet::DoesNotContain(FILE* pOut, CSymbol* pSym)
 BOOL CSet::AddToSet(CSetMember* pNewMember)
 {
 	BOOL rV = FALSE;
+
 	if (IsNotAlreadyInSet(pNewMember))
 	{
 		rV = TRUE;

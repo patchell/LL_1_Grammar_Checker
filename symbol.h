@@ -4,7 +4,7 @@ class CLexer;
 
 class CSymbol: public CBin
 {
-	class CLexer friend;
+//	class CLexer friend;
 public:
 	enum class TokenType {
 		NOT_TOKEN,
@@ -119,9 +119,8 @@ public:
 		strcpy_s(m_aTokenName, 256, pName);
 	}
 	char* GetTokenName() { return m_aTokenName; }
-private:
-	void SetEmpty(BOOL IE) { m_IsEmpty = IE; }
 public:
+	void SetEmpty(BOOL IE) { m_IsEmpty = IE; }
 	BOOL IsTerminal();
 	BOOL IsNonTerminal();
 	//-----------------------------
@@ -135,8 +134,12 @@ public:
 	//----------------------------
 	// Set Managment
 	//----------------------------
-	CSet* GetFirstSet() { return &m_FirstSet; }
-	CSet& GetFirstSetRef() { return m_FirstSet; }
+	CSet* GetFirstSet() {
+		return &m_FirstSet; 
+	}
+	CSet& GetFirstSetRef() {
+		return m_FirstSet; 
+	}
 	CSet* GetFollowSet() { return &m_FollowSet; }
 };
 

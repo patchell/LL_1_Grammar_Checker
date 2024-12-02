@@ -6,6 +6,7 @@ CRecDecParGen* GetParser()
 {
 	return &Parser;
 }
+
 void CloseAllFiles()
 {
 	Parser.CloseFiles();
@@ -40,7 +41,8 @@ int main(int argc, char *argv[])
 	FILE* pLog;
 	char aLogFile[256];
 
-	fprintf(stderr, "CkLL1 Ver 1.0.1\n");
+	fprintf(stderr, "CkLL1 Ver 1.1.0\n");
+	fprintf(stderr, "December 1, 2024\n");
 	if (argc == 1)
 	{
 		fprintf(stderr, "Missing Source File\n");

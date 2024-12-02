@@ -4,7 +4,7 @@
 class CLexeme
 {
 	class CSet friend;
-	class CSymbol friend;;
+	class CSymbol friend;
 	CSymbol* m_pLexemeSymbol;
 	CLexeme* m_pNext;
 	CLexeme* m_pPrev;

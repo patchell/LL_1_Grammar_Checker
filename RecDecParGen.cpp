@@ -31,12 +31,19 @@ BOOL CRecDecParGen::Run()
 	int UndefinedNonTerminals;
 	int Orphans;
 	int Recursions;
+	FILE* pLog;
+
+	pLog = NULL;
+	pLog = LogFile();
+
 	//-----------------------------------
 	// Parse the Grammar
 	//-----------------------------------
 	Parse();
-	fprintf(LogFile(), "*************  Print Out Grammar Structure************\n");
-	PrintGrammar(LogFile());
+	//if(pLog)
+	//	fprintf(pLog, "*************  Print Out Grammar Structure************\n");
+	//if(pLog)
+	//	PrintGrammar(LogFile());
 	//------------------------------------
 	// Check for Undefined Non Terminals
 	//------------------------------------
@@ -76,6 +83,7 @@ BOOL CRecDecParGen::Run()
 	pDollarSign = new CSetMember;
 	pDollarSign->Create(CLexer::GetEndOfTokenStream());
 	GetLexer()->GetSymTab()->GetTerminalSet()->AddToSet(pDollarSign);
+	GetLexer()->GetSymTab()->PrintTable(0);
 	//-----------------------------------
 	// Print the set of Non Terminals
 	//-----------------------------------
@@ -93,7 +101,7 @@ BOOL CRecDecParGen::Run()
 	// Create First Set
 	//----------------------------------------------
 	fprintf(LogFile(), "----- Calc First Sets------\n");
-	CreateFirstSets(NULL);
+	CreateFirstSets(0);
 	GetLexer()->GetSymTab()->PrintFirstSets(LogFile());
 	//---------------------------------------
 	// Create Follow Sets
@@ -257,6 +265,7 @@ void CRecDecParGen::CreateFirstSets(FILE* pOut)
 	CRule* pRule;
 	CSet* pFIRST_X;
 	int Iterration = 1;
+	BOOL bDebugTag = FALSE;
 
 	if (pOut) fprintf(pOut, "******* Create First Set Ver 2 ********\n");
 	do
@@ -266,7 +275,14 @@ void CRecDecParGen::CreateFirstSets(FILE* pOut)
 		pNonTerminalSetMember = GetLexer()->GetSymTab()->GetNonTerminalSet()->GetHead();
 		while (pNonTerminalSetMember)
 		{
-			if (pOut) fprintf(pOut, "----------------------\n");
+			if (strcmp("AddExpr_1", pNonTerminalSetMember->GetSetMemberSymbol()->GetName()) == 0)
+				bDebugTag = TRUE;
+			else
+				bDebugTag = FALSE;
+			if (pOut) fprintf(pOut, ">%s ------------< Iteration %d >----------\n", 
+				pNonTerminalSetMember->GetSetMemberSymbol()->GetName(),
+				Iterration
+			);
 			if (pOut) fprintf(pOut, "FIRST(%s)\n", pNonTerminalSetMember->GetSetMemberSymbol()->GetName());
 			pSymLHS = pNonTerminalSetMember->GetSetMemberSymbol();
 			pRule = pSymLHS->GetHead();
@@ -278,7 +294,8 @@ void CRecDecParGen::CreateFirstSets(FILE* pOut)
 				bChanged |= pRule->FIRST(
 					pOut,
 					pRule->GetHead(),
-					pSymLHS->GetFirstSetRef()
+					pSymLHS->GetFirstSetRef(),
+					bDebugTag
 				);
 				pSymLHS->GetFirstSetRef().Print(pOut, FALSE, TRUE);
 				pRule = pRule->GetNext();

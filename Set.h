@@ -13,7 +13,9 @@ public:
 	virtual ~CSet();
 	BOOL Create(const char* pName, const char* pClassName);
 	void SetName(const char* pName, const char* pClassName);
-	const char* GetName() { return m_aName; }
+	const char* GetName() {
+		return m_aName;
+	}
 	BOOL Copy(CSet* pSet);
 	BOOL CopyExceptEmpty(CSet* pSet);
 	BOOL Union(CSet* pSetB, CSet& SetC);

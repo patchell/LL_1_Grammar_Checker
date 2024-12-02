@@ -65,6 +65,8 @@ void CSymbol::PrintProduction(FILE* pOut, BOOL bLHS, BOOL bEOL, int nIndentSpace
 
 void CSymbol::Print(FILE* pOut, BOOL bLHS, BOOL bEOL, int nIndentSpaces)
 {
+	CRule* pRule = 0;
+
 	if (pOut)
 	{
 		fprintf(pOut, "%s: Token:%s TargetValue:%d NULLABLE(%d) START(%d)\n",
@@ -77,6 +79,12 @@ void CSymbol::Print(FILE* pOut, BOOL bLHS, BOOL bEOL, int nIndentSpaces)
 		if(strlen(m_aTokenName) > 0)
 			fprintf(pOut, "\tToken Name:%s\n", m_aTokenName);
 		fprintf(pOut, "\tToken Type:%s\n", GetTokenTypeString(GetTokenType()));
+		pRule = GetHead();
+		while (pRule)
+		{
+			pRule->Print(LogFile());
+			pRule = pRule->GetNext();
+		}
 		GetFirstSet()->Print(pOut, FALSE, TRUE, nIndentSpaces + 5);
 		GetFollowSet()->Print(pOut, FALSE, TRUE, nIndentSpaces + 5);
 	}
@@ -110,6 +118,8 @@ BOOL CSymbol::IsNonTerminal()
 
 void CSymbol::AddRule(CRule* pRule)
 {
+	if (strcmp(GetName(), "AsmStmt") == 0)
+		fprintf(LogFile(), "Add Rule:%s\n", GetName());
 	m_nTotalRules++;
 	if (GetTail())
 	{

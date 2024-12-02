@@ -186,7 +186,6 @@ CSymbol* CSymTab::FindNextPredefineToken(CToken::LLRD_Token Value)
 void CSymTab::AddSymbol(CBin* pSym)
 {
 	int Index = Hash(pSym->GetName());	//generate index
-	
 	if (m_ppTab[Index] == NULL)	//there is NO bucket here
 	{
 		//------------------------------------
@@ -220,6 +219,7 @@ void CSymTab::AddSymbol(CBin* pSym)
 void CSymTab::DelSymbol(CBin* pSym)
 {
 	int HashValue = Hash(pSym->GetName());
+	fprintf(LogFile(), "Delete Symbol %s  Hash=%d\n", pSym->GetName(), HashValue);
 	m_ppTab[HashValue]->Delete(pSym);
 }
 
@@ -230,6 +230,8 @@ int CSymTab::CheckForUnUsedNonTerminala(FILE* pOut)
 	CBin* pBin;
 	int i;
 
+	if (pOut)
+		fprintf(pOut, "***************** Check for Non Terminals **************************\n");
 	for (i = 0; i < GetTableSize(); i++)
 	{
 		if (GetBucket(i))
@@ -240,10 +242,17 @@ int CSymTab::CheckForUnUsedNonTerminala(FILE* pOut)
 				pSym = (CSymbol *) (pBin);
 				if (pSym->GetTokenValue() == CToken::LLRD_Token::NONTERMINAL)
 				{
+					//------------------------------------
+					// If there are no rules,
+					// then the non-terminal is not
+					// defined, or is it?
+					//------------------------------------
 					if (pSym->GetHead() == NULL)
 					{
-						fprintf(pOut, "Non Terminal \'%s\' is Undefined\n",
-							pSym->GetName()
+						if (pOut)
+							fprintf(pOut, "  Non Terminal \'%s\' @Line %d is Undefined\n",
+								pSym->GetName(),
+								pSym->GetLineWhereDefined()
 						);
 						Unused++;
 					}
@@ -252,6 +261,8 @@ int CSymTab::CheckForUnUsedNonTerminala(FILE* pOut)
 			}
 		}
 	}
+	if (pOut)
+		fprintf(pOut, "***************** End of Check for Non Terminals **********************\n");
 	return Unused;
 }
 
@@ -391,6 +402,7 @@ void CSymTab::PrintTable(FILE* pOut)
 	{
 		if (m_ppTab[i])
 		{
+			if (pOut) fprintf(pOut, "------ InDEX %d ------\n", i);
 			m_ppTab[i]->Print(pOut);
 		}
 	}

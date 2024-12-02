@@ -6,6 +6,7 @@ CParser::CParser()
 	m_pCurrentRule = 0;
 	m_FirstGrammarSymbol = TRUE;
 	m_AutoIncTokenValue = 256;
+	m_bLog = false;
 }
 
 CParser::~CParser()
@@ -130,16 +131,31 @@ void CParser::Parse()
 	CSetMember* pSM, * pSM_EOT;
 	//	CLexeme* pLexeme;
 
+	if (m_bLog)
+		fprintf(LogFile(), "Start Parsing\n");
 	LookaHeadToken = GetLexer()->Lex();
 	LookaHeadToken = LLRDgramer(LookaHeadToken);
+	if (m_bLog)
+	{
+		int Lines;
+		Lines = GetLexer()->GetLineNumber();
+		fprintf(stderr, "We parsed %d Lines of code\n", Lines);
+	}
 	//------------------------------------------
 	// All done, just need to tack $ onto the
 	// head grammar rule.
 	//------------------------------------------
 	pSM = GetLexer()->GetSymTab()->GetNonTerminalSet()->GetHead();
 	pSM_EOT = new CSetMember;
+	if (pSM == NULL)
+	{
+		fprintf(stderr, "Internal Error\nHead of NonTerminal Table is NULL\n");
+		CloseAllFiles();
+		exit(-1);
+	}
 	pSM_EOT->Create(CLexer::GetEndOfTokenStream());
 	pSM->GetSetMemberSymbol()->GetFollowSet()->AddToSet(pSM_EOT);
+//	if(m_bLog) GetLexer()->GetSymTab()->PrintTable(LogFile());
 }
 
 //-------------------------------------
@@ -221,6 +237,9 @@ CToken::LLRD_Token CParser::GrammarStmt(CToken::LLRD_Token LookaHeadToken)
 	switch (LookaHeadToken)
 	{
 	case CToken::LLRD_Token::IDENT:
+		//------------------------------------
+		// If first defined on LHS
+		//------------------------------------
 		pSym = GetLexer()->GetSymbol();
 		pSym->SetLineWhereDefined(GetLexer()->GetLineNumber());
 		GetLexer()->GetSymbol()->SetTokenValue(CToken::LLRD_Token::NONTERMINAL, CSymbol::TokenType::NOT_TOKEN);
@@ -246,6 +265,9 @@ CToken::LLRD_Token CParser::GrammarStmt(CToken::LLRD_Token LookaHeadToken)
 		LookaHeadToken = RHSide(LookaHeadToken);
 		break;
 	case CToken::LLRD_Token::NONTERMINAL:
+		//------------------------------------
+		// If first defined on RHS
+		//------------------------------------
 		pSym = GetLexer()->GetSymbol();
 		pSym->SetLineWhereDefined(GetLexer()->GetLineNumber());
 		//--------------------------------------------
@@ -260,6 +282,7 @@ CToken::LLRD_Token CParser::GrammarStmt(CToken::LLRD_Token LookaHeadToken)
 		pSI->Create(CStackItem::ValueType::pSYMBOL, pSym);
 		GetValueStack()->Push(pSI);
 		LookaHeadToken = RHSide(LookaHeadToken);
+//		pSym->Print(LogFile());
 		break;
 	case CToken::LLRD_Token::EMPTY:
 		LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token::EMPTY);
@@ -297,9 +320,6 @@ CToken::LLRD_Token CParser::RHSide(CToken::LLRD_Token LookaHeadToken)
 		LookaHeadToken = Rule(LookaHeadToken);
 		GetValueStack()->Pop();
 		LookaHeadToken = RHSide(LookaHeadToken);
-		break;
-	case CToken::LLRD_Token::EMPTY:
-		LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token::EMPTY);
 		break;
 	default:
 		break;
@@ -416,6 +436,7 @@ CToken::LLRD_Token CParser::TerminalList(CToken::LLRD_Token LookaHeadToken)
 		case CToken::LLRD_Token(','):
 			LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token(','));
 			LookaHeadToken = TerminalItem(LookaHeadToken);
+//			GetLexer()->GetSymTab()->PrintTable(LogFile());
 			break;
 		default:
 			Loop = FALSE;
@@ -439,17 +460,35 @@ CToken::LLRD_Token CParser::TerminalItem(CToken::LLRD_Token LookaHeadToken)
 	switch (LookaHeadToken)
 	{
 	case CToken::LLRD_Token::STRING:
+		//---- Create a new symbol
 		pSym = new CSymbol;
 		pSym->Create(GetLexer()->GetLexbuff(), CSymbol::TokenType::PREDEFINED);
 		pSym->SetTokenValue(CToken::TERMINAL, CSymbol::TokenType::PREDEFINED);
+		pSym->SetLineWhereDefined(GetLexer()->GetLineNumber());
+		//---------- Push Symbol onto value stack -----------------
 		pSI = new CStackItem;
 		pSI->Create(CStackItem::ValueType::pSYMBOL, pSym);
 		GetValueStack()->Push(pSI);
 		GetLexer()->GetSymTab()->AddSymbol(pSym);
+		//-------- Make set member for Symbol -------------------
 		pSM = new CSetMember;
 		pSM->Create(pSym);
+		//---------- Add symbol to Terminal Set ---------------
 		GetLexer()->GetSymTab()->GetTerminalSet()->AddToSet(pSM);
+		//-------------------------------------------
+		GetLexer()->GetSymTab()->GetTerminalSet()->Print(LogFile());
+		pSM = new CSetMember;
+		pSM->Create(pSym);
+		pSym->GetFirstSet()->AddToSet(pSM);
+		pSym->GetFirstSet()->Print(LogFile());
+		//-------------------------------------------
 		LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token::STRING);
+		if (Accept(LookaHeadToken, CToken::LLRD_Token::STRING))
+		{
+			fprintf(stderr, "Missing , perhaps in Line %d", GetLexer()->GetLineNumber());
+			CloseFiles();
+			exit(-1);
+		}
 		LookaHeadToken = OptInit(LookaHeadToken);
 		break;
 	}
