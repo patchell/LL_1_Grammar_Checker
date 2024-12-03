@@ -1,0 +1,34 @@
+???????? $ Nullable Set(0)
+TERMINALS['Terminals'] { 'a' }
+FIRST['a'] { 'a' }
+TERMINALS['Terminals'] { 'a','b' }
+FIRST['b'] { 'b' }
+TERMINALS['Terminals'] { 'a','b','c' }
+FIRST['c'] { 'c' }
+TERMINALS['Terminals'] { 'a','b','c','d' }
+FIRST['d'] { 'd' }
+TERMINALS['Terminals'] { 'a','b','c','d','e' }
+FIRST['e'] { 'e' }
+TERMINALS['Terminals'] { 'a','b','c','d','e','e','$' }
+NONTERMINALS['Non Terminals'] { 'A','A1','B','C','D' }
+*********** Build Nullable Set **********
+****************Create NOT nullable set ************************
+----- Calc First Sets------
+FIRST['A'] { 'b' }
+FIRST['A1'] { 'a','e' }
+FIRST['B'] { 'b' }
+FIRST['C'] { 'c' }
+FIRST['D'] { 'd' }
+----- Calc Follow Sets------
+------------ Follow Sets ---------------
+FOLLOW['A'] { '$' }
+FOLLOW['A1'] { '$' }
+FOLLOW['B'] { 'a','$' }
+FOLLOW['C'] { }
+FOLLOW['D'] { }
+---------------- Create Parse Table --------------
+Table Entries = 7
+------------ Check For Conflicts-------------
+2('A1','a')
+          1.  A1 -> a C B A1  Line:17
+          2.  A1 -> a D B A1  Line:17

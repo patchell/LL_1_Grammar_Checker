@@ -5,29 +5,20 @@
 //-------------------------------
 
 TERMINALS
-	"IDENT" = 256,
-	"+",
-	"*",
-	"(",
-	")"
-END_TERMINALS
+	"a" = 256,
+	"b",
+	"c",
+	"d",
+	"e"
 
 GRAMMAR
-grammar -> expr;
 
+A	-> B A1;
+A1	-> a C B A1
+	-> a D B A1
+	-> .
+	;
 
-expr	-> term expr_1;
-expr_1	-> '+' term expr_1
-		-> .
-		;
-
-term	-> factor term_1;
-term_1	-> '*' factor term_1
-		-> .
-		;
-
-factor -> 'IDENT'
-       -> '(' expr ')'
-       ;
-
-END_GRAMMAR
+B	-> b;
+C	-> c;
+D	-> d;

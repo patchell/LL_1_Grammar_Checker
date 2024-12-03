@@ -231,7 +231,7 @@ int CSymTab::CheckForUnUsedNonTerminala(FILE* pOut)
 	int i;
 
 	if (pOut)
-		fprintf(pOut, "***************** Check for Non Terminals **************************\n");
+		fprintf(pOut, "***************** Check for Undefined Non Terminals **************************\n");
 	for (i = 0; i < GetTableSize(); i++)
 	{
 		if (GetBucket(i))
@@ -262,7 +262,7 @@ int CSymTab::CheckForUnUsedNonTerminala(FILE* pOut)
 		}
 	}
 	if (pOut)
-		fprintf(pOut, "***************** End of Check for Non Terminals **********************\n");
+		fprintf(pOut, "***************** End of Check for Undefined Non Terminals *******************\n");
 	return Unused;
 }
 

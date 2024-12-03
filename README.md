@@ -1,4 +1,12 @@
 Readme.nd
+
+December 3, 2024
+
+I am at the very least fairly confident it works again.  I
+have been using it on a fairly larger grammar, about 700 lines
+or so, and also checked it on a very simple grammar (test3.gram)
+to make sure I got the correct conflicts.
+
 December 1, 2024
 
 Talk about egg on my face.  Somewhere along the way things

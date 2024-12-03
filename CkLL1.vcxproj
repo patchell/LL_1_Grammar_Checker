@@ -184,6 +184,7 @@
   <ItemGroup>
     <None Include="Action.gram" />
     <None Include="README.md" />
+    <None Include="test3.gram" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
