@@ -302,7 +302,7 @@ void CSet::Print(FILE* pOut, BOOL bLHS, BOOL bEOL, int nIndentSpaces)
 			IndentString(s, nIndentSpaces),
 			GetName()
 		);
-		LineSize = strlen(GetName()) + nIndentSpaces;
+		LineSize = int(strlen(GetName())) + nIndentSpaces;
 		while (pMember)
 		{
 			if (pMember->GetPrev())

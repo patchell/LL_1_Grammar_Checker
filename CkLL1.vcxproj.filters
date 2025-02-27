@@ -168,5 +168,8 @@
     <None Include="test3.gram">
       <Filter>Te4st Grammars</Filter>
     </None>
+    <None Include="Action1.gram">
+      <Filter>Te4st Grammars</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -287,6 +287,8 @@ CToken::LLRD_Token CParser::GrammarStmt(CToken::LLRD_Token LookaHeadToken)
 	case CToken::LLRD_Token::EMPTY:
 		LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token::EMPTY);
 		break;
+	case CToken::LLRD_Token::TERMINAL:
+		fprintf(stderr, "Terminal on LH side Line:%d\n", GetLexer()->GetLineNumber());
 	default:
 		break;
 	}

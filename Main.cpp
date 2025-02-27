@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
 	FILE* pLog;
 	char aLogFile[256];
 
-	fprintf(stderr, "CkLL1 Ver 1.1.1\n");
-	fprintf(stderr, "December 3, 2024\n");
+	fprintf(stderr, "CkLL1 Ver 1.1.2\n");
+	fprintf(stderr, "Februrary  26, 2025\n");
 	if (argc == 1)
 	{
 		fprintf(stderr, "Missing Source File\n");

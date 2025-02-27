@@ -61,7 +61,7 @@ int CSetMember::Print(FILE* pOut, int DelimiterChar, BOOL bLHS, BOOL bEOL, int n
 			DelimiterChar, 
 			pName
 		);
-		NumCharsPrinted = strlen(GetSetMemberLexeme()->GetLexemeSymbol()->GetName());
+		NumCharsPrinted = int(strlen(GetSetMemberLexeme()->GetLexemeSymbol()->GetName()));
 		NumCharsPrinted += nIndentSpaces + 3;
 		if (bEOL)
 			fprintf(pOut, "\n");

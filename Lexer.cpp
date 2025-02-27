@@ -153,12 +153,42 @@ BOOL CLexer::IsWhiteSpace(int c)
 	return IsValid;
 }
 
+BOOL CLexer::CheckTokens(CToken::LLRD_Token Last, CToken::LLRD_Token Current)
+{
+	BOOL rV = TRUE;
+	int t = (int)Current;
+	int l = (int)Last;
+	if (l == '.')
+	{
+		if (t == ';')
+			rV = FALSE;
+	}
+	return rV;
+}
+
+BOOL CLexer::CheckSymbols(CSymbol* pLast, CSymbol* pNew)
+{
+	BOOL rV = FALSE;
+
+	if (pLast)
+	{
+		if (pLast == pNew)
+		{
+			fprintf(stderr, "WARNING missing ; ???");
+			rV = TRUE;
+		}
+	}
+	return rV;
+}
+
 CToken::LLRD_Token CLexer::Lex()
 {
 	BOOL Loop = TRUE;
 	BOOL auxLoop = TRUE;
 	int c;
 	CToken::LLRD_Token TokenValue = CToken::LLRD_Token(0);
+	CToken::LLRD_Token LastToken = CToken::LLRD_Token(0);
+	CSymbol* pLastSym = 0;
 
 //	if (m_Line >= 285)
 //		printf("Boo-Boo Line:%d\n", m_Line);
@@ -182,7 +212,9 @@ CToken::LLRD_Token CLexer::Lex()
 			break;
 		case '\t':	//more white space
 			m_Col += 4;
+			break;
 		case '\r':	
+			break;
 		case ' ':
 			break;
 		case '/':
@@ -397,6 +429,11 @@ CToken::LLRD_Token CLexer::Lex()
 			break;	// end of default:
 		}	// End of switch(c)
 	}
+	if (!CheckTokens(LastToken, TokenValue))
+		fprintf(stderr, "WARNING . is not followed by ;\n");
+	LastToken = TokenValue;
+	CheckSymbols(pLastSym, m_pLexSymbol);
+	pLastSym = m_pLexSymbol;
 //	fprintf(LogFile(), "Lex::%s\n", m_aLexBuff);
 	return TokenValue;
 }

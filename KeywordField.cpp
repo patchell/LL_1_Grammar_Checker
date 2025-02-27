@@ -39,7 +39,7 @@ BOOL CKeywordField::Compare(const char* pName)
 void CKeywordField::SetFieldName(const char* pName)
 {
 	int l;
-	l = strlen(pName) + 1;
+	l = int(strlen(pName)) + 1;
 	m_pFieldName = new char[l];
 	strcpy_s(m_pFieldName, l, pName);
 }
@@ -47,7 +47,7 @@ void CKeywordField::SetFieldName(const char* pName)
 void CKeywordField::SetCppTypeString(const char* pTypeString)
 {
 	int l;
-	l = strlen(pTypeString) + 1;
+	l = int(strlen(pTypeString)) + 1;
 	m_pFieldCppTypeString = new char[l];
 	strcpy_s(m_pFieldCppTypeString, l, pTypeString);
 }
@@ -55,7 +55,7 @@ void CKeywordField::SetCppTypeString(const char* pTypeString)
 void CKeywordField::SetStringValue(const char* pValueString)
 {
 	int l;
-	l = strlen(pValueString) + 1;
+	l = int(strlen(pValueString)) + 1;
 	m_pFieldStringValue = new char[l];
 	strcpy_s(m_pFieldStringValue, l, pValueString);
 }

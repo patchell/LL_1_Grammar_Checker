@@ -46,7 +46,9 @@ public:
 	BOOL IsValidNumber(int c);
 	BOOL IsValidNameChar(int c);
 	BOOL IsWhiteSpace(int c);
-	CToken::LLRD_Token Lex();
+    BOOL CheckTokens(CToken::LLRD_Token Last, CToken::LLRD_Token Current);
+	BOOL CheckSymbols(CSymbol* pLast, CSymbol* pNew);
+    CToken::LLRD_Token Lex();
 	static CSymbol* GetEmpty() { return &m_EmptySymbol; }
 	static CSymbol* GetEndOfTokenStream() {
 		return &m_EndOfTokenStream;

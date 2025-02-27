@@ -1,18 +1,80 @@
 //----------------------------------
 // ACTION! compiler for the 6502
 // Version 0.0.1 Nov 27, 2024
+// Version 0.0.2 Dec 3, 2024
+//	Had a bit of a mishap with the 
+// ll(1) grammar checker, ok, it turned
+// out to be majorly broken.  It did
+// work at once time, but I made it 
+// better by not making it work.
+// I was wondering why I had become
+// such a genius at writing ll(1)
+// grammars.
+// VERSION:0.0.3 December 16, 2024
+//		The original ACTION did not
+// have comma seperators between
+// values, unlike the previous
+// versions of this grammar.
+// Changed the production for a
+// constant list so commas are not
+// needed.  Surprised myself.  I did
+// not think this was doable in an
+// ll(1) grammar.
+// This grammar is a far cry from
+// the older grammars.
+// VERSION 0.0.4
+// Added some new TOKENS and KEYWORDS
+// DECLARE......To declare PROCS/FUNCS/INTERRUPT functions
+// VAR_LOCAL....Token
+// VAR_GLOBAL...Token
+// VAR_PARAM....Token
+//
+//	VERSION 0.0.5
+//	Added DefineParamIdent and DefineParamIdentList
+//
+// VERSION 0.0.6  Jan 13, 2025
+// Discovered a problem with the FundDecl grammar.
+// Had to move things around just a little bit to
+// hopefully make it so I can code it.
+// Every time I have to change the grammar I say, "OK,
+// This is it, it won't have to cange again."
+// I am also amazed at how much I learn about writing
+// parsers every time some little thing goes wrong
+//
+// VERSION 0.0.7
+// Added 'SET' Keyword for both Assembler and Action
+// Compiler.  Added Section definition to Action
+// Compiler as well
+//
+// VERSION 0.0.8 Feb. 12, 2025
+// Changed the way Compiler Constants Lists (ConstList)
+// so that commas are no longer required between
+// values.
+//
+// VERSION 0.0.9 Feb 19, 2025
+//	Added Local TYPE declarations
+//
+//	VERSION 0.0.10 Feb 25, 2025
+//	Added LOCAL_LABEL and GLOBAL_LABEL Tokens
 //----------------------------------
 
 TERMINALS
 	"IDENT" = 256,
+	"VAR_LOCAL",
+	"VAR_GLOBAL",
+	"VAR_PARAM",
+	"LOCAL_LABEL",
+	"GLOBAL_LABEL",
 	"NUMBER",
 	"STRING",
+	"SET",
 	"VECTOR",
 	"MODULE",
 	"RETURN",
 	"PROC",
 	"FUNC",
 	"INTERRUPT",
+	"DECLARE",
 	"INTERRUPT_IDENT",
 	"PROC_IDENT",
 	"FUNC_IDENT",
@@ -38,6 +100,7 @@ TERMINALS
 	"GTEQ",
 	"LTEQ",
 	"DEFINE",
+	"DEFINED_IDENT",
 	"TYPE",
 	"RECORDTYPE",
 	"BOOL",
@@ -57,6 +120,7 @@ TERMINALS
 	"ASM",
 	//Assembler Tokens
 	"SECTION",
+	"SECTION_NAME",
 	"START",
 	"SIZE",
 	"MODE",
@@ -74,9 +138,8 @@ TERMINALS
 	"DS",	// DEFINE STORAGE, BLOCK OF MEMORY
 	"ASMPROC",
 	"EPROC",
-	"LOCAL_LABLE",
-	"GLOBAL_LABLE",
-	"GLOBAL_LABLE",
+	"LABEL_GLOBAL",
+	"LABEL_LOCAL",
 	"ADC",
 //	"AND",		// see logical AND
 	"ASL",
@@ -177,7 +240,8 @@ TERMINALS
 	"NEG",		//cpu 'N'eg status register flage
 	"CARRY",		// cpu 'C'arry status register flag
 	"ZERO",		// cpu 'Z'ero status register flag
-	"OVERFLOW"		// cpu 'O'verflow status register flag
+	"OVERFLOW",		// cpu 'O'verflow status register flag
+	"CUR_LOC"
 
 GRAMMAR
 //--------------------------------
@@ -185,23 +249,27 @@ GRAMMAR
 //--------------------------------
 Action65	-> Modules;
 
-Modules		-> Vector Modules_1;
-Modules_1	-> 'MODULE' Vector Modules_1
+Modules		-> Set Modules_1;
+Modules_1	-> 'MODULE' Set Modules_1
 			-> .
 			;
 
-Vector			-> SysDecl Vector_1;
-Vector_1		-> 'VECTOR' VectorAddress SysDecl Vector_1
-				-> .
-				;
-VectorAddress	-> '(' CompConst ')' VectorData;
-VectorData		-> '=' CompConst;
+Set			-> SysDecl Set_1;
+Set_1		-> 'SET' SetObjects SysDecl Set_1
+			-> .
+			;
 
+SetObjects	-> 'SECTION' SetSectionName
+			-> .
+			;
 
+SetSectionName		-> 'SECTION_NAME';
+
+//------------------------------------------
+// Grammar for code
 //------------------------------------------
 // Statements
 //------------------------------------------
-
 
 //---------------------------------------
 // Proceedure/Function Call
@@ -219,93 +287,82 @@ ProcParams_1	->	'(' ProcParamsEnd
 
 ProcParamsEnd	-> ValueList ProcParamsEnd_1;
 ProcParamsEnd_1	-> ')'
-				-> .
 				;
 
 //------------------------------------------------
 // FOR statement
 //------------------------------------------------
 ForStmt			-> IfStmt ForStmt_1;
-ForStmt_1		-> 'FOR' STEPoption DoStmt ForStmt_1
+ForStmt_1		-> 'FOR' For IfStmt ForStmt_1
 				-> .
 				;
-STEPoption		-> ForTO STEPoption_1;
-STEPoption_1	-> 'STEP' ArithExpr
-				-> .
+
+For				-> 'VAR_LOCAL' For_1
+				-> 'VAR_GLOBAL' For_1
+				-> 'VAR_PARAM' For_1
 				;
-ForTO			-> Itterrator ForTO_1;
-ForTO_1		-> 'TO' ArithExpr
-				-> .
+For_1			-> '=' ArithExpr For_2;
+For_2			-> 'TO' ArithExpr For_3;
+For_3			-> 'STEP' ArithExpr For_4
+				-> For_4
 				;
-Itterrator		-> MemContentsType Itterrator_1;
-Itterrator_1	-> '=' ArithExpr
-				-> .
-				;
+For_4			-> 'DO' Statements For_5;
+For_5			-> 'OD';
+
 
 //------------------------------------------------
 // IF statement
 //------------------------------------------------
 IfStmt			-> Iff IfStmt_1;
-IfStmt_1		-> 'IF' EndIF Iff IfStmt_1
+IfStmt_1		-> 'IF' IfPart Iff IfStmt_1
 				-> .
 				;
 
-EndIF		-> ElsePart EndIF_1;
-EndIF_1		-> 'FI';
+IfPart			-> RelOperation IfPart_1;
+IfPart_1		-> 'THEN' Statements IfPart_2;
+IfPart_2		-> 'ELSEIF' RelOperation IfPart_1
+				-> 'ELSE' Statements IfPart_3
+				-> IfPart_3;
+IfPart_3		-> 'FI';
 
-ElsePart	-> ElseIfPart ElsePart_1;
-ElsePart_1	-> 'ELSE' Statements
-			-> .
-			;
-
-ElseIfPart		-> ThenPart ElseIfPart_1;
-ElseIfPart_1	-> 'ELSEIF' ThenPart ElseIfPart_1
-				-> .
-				;
-
-ThenPart	-> RelOperation ThenPart_1;
-ThenPart_1	-> 'THEN' Statements
-			-> .
-			;
 
 //-------------------------------------------------
 // IFF Statement
 //-------------------------------------------------
 
 Iff		-> WhileStmt Iff_1;
-Iff_1	-> 'IFF' IFFend WhileStmt Iff_1
+Iff_1	-> 'IFF' IffPart WhileStmt Iff_1
 		-> .
 		;
 
-IFFend		-> IFFelse IFFend_1;
-IFFend_1	-> 'FFI';
-
-IFFelse		-> IFFthenpart IFFelse_1;
-IFFelse_1	-> 'ELSE' Statements
-			-> .
+IffPart		-> IffRelOper IffPart_1;
+IffPart_1	-> 'THEN' Statements IffPart_2;
+IffPart_2	-> 'ELSE' Statements IffPart3;
+IffPart3	-> 'FI'
 			;
-IFFthenpart		-> IffConditional IFFthenpart_1;
-IFFthenpart_1	-> 'THEN' Statements
-				-> .
-				;
 
-IffConditional	-> Bits IffConditional_1;
-IffConditional_1-> 'AREG' RelOper 
-				-> 'XREG' RelOper 
-				-> 'YREG' RelOper 
-				-> .
-				;
-RelOper			-> '<' Value
+IffRelOper		-> IffRegister IffRelOper_1;
+IffRelOper_1	-> '<' Value
 				-> 'GTEQ' Value
 				-> '=' Value
+				-> '^' '=' Value	//not equal
+				-> .
+				;
+
+IffRegister		-> Bits IffRegister_1;
+IffRegister_1	-> 'AREG'  
+				-> 'XREG'  
+				-> 'YREG'  
 				-> .
 				;
 
 Bits			->StatusFlags Bits_1;
 Bits_1			-> 'BITS' BitValue
+				-> BIT BitValue
 				-> .
 				;
-BitValue		-> '[' ArithExpr ']';
+BitValue		-> '[' ArithExpr 
+				-> ']';
 
 StatusFlags		-> OptNot StatusFlags_1;
 StatusFlags_1	-> 'NEG'		//negative flag
@@ -323,21 +380,24 @@ OptNot			-> '^'
 // WHILE Statement
 //-------------------------------------------------
 WhileStmt		-> DoStmt WhileStmt_1;
-WhileStmt_1		-> 'WHILE'  RelOperation DoStmt WhileStmt_1
+WhileStmt_1		-> 'WHILE'  WhileDO DoStmt WhileStmt_1
 				-> .
 				;
+
+WhileDO		-> RelOperation WhileDO_1;
+WhileDO_1	-> 'DO' Statements WhileDO_2;
+WhileDO_2	-> 'OD';
+
 
 //------------------------------------------------
 // DO Statement
 //------------------------------------------------
 DoStmt			-> EXITstmt DoStmt_1;
-DoStmt_1		-> 'DO' DoEnd DoStmt_1
+DoStmt_1		-> 'DO' DoEnd EXITstmt DoStmt_1
 				-> .
 				;
 DoEnd			-> Statements DoEnd_1;
-DoEnd_1			-> 'OD'
-				-> .
-				;
+DoEnd_1			-> 'OD';
 
 //---------------------------------------------------
 // EXIT Statement
@@ -360,28 +420,23 @@ OptReturnValue	-> '(' ArithExpr ')'
 // Inline Assembly Code
 //---------------------------------------------
 InlineAssembly		-> CodeBlock InlineAssembly_1;
-InlineAssembly_1	-> 'ASM' InlineAssBlock CodeBlock InlineAssembly_1
+InlineAssembly_1	-> 'ASM' EndAsmBlock CodeBlock InlineAssembly_1
 					-> .
 					;
 
-InlineAssBlock		-> EndAsmBlock InlineAssBlock_1;
-InlineAssBlock_1	-> '{' EndAsmBlock InlineAssBlock_1
-					-> .
-					;
-EndAsmBlock			-> AsmStmt EndAsmBlock_1;
+EndAsmBlock			-> InlineAssBlock EndAsmBlock_1;
 EndAsmBlock_1		-> '}'
-					-> .
+					;
+
+InlineAssBlock		-> '{' AsmStmt
 					;
 //-----------------------------------------------
 // CODE (Kluge) BLOCK statement
 //-----------------------------------------------
 CodeBlock		-> UntillStmt CodeBlock_1;
-CodeBlock_1		-> '[' CodeBlockEnd UntillStmt CodeBlock_1
+CodeBlock_1		-> '[' ComstListEnd UntillStmt CodeBlock_1
 				-> .
 				;
-CodeBlockEnd	-> ConstList CodeBlockEnd_1;
-CodeBlockEnd_1	-> ']'
-				-> .
 				;
 
 //---------------------------------------------------
@@ -525,204 +580,12 @@ MultExpr_1	-> '*' Unary MultExpr_1
 			;
 
 Unary	-> '-' Unary
-		-> Factor
+		-> Value
 		;
-
-Factor		-> Value Factor_1;
-Factor_1	-> '(' ArithExpr ')'
-			-> .
-			;
-		 
-//-------------------------------------------
-// Declarations
-//-------------------------------------------
-// DEFINE declaration  Sort of a MACRO defination
-//-------------------------------------------
-SysDecl		-> TypeDefDecl Define;
-Define	-> 'DEFINE' DefList TypeDefDecl Define
-			-> .
-			;
-DefList	-> Def DefList_1;
-DefList_1	-> ',' Def DefList_1
-			-> .
-			;
-Def		-> IDENT '=' CompConst;
-
-//----------------------------------------------
-// TYPE Defination  Creates User define data
-// object.
-//----------------------------------------------
-TypeDefDecl		-> FundDecl TypeDefDecl_1;
-TypeDefDecl_1	-> 'TYPE' EndTypeDef FundDecl TypeDefDecl_1
-				-> .
-				;
-EndTypeDef		-> RecDefField EndTypeDef_1;
-EndTypeDef_1	-> ']'
-				-> .
-				;
-RecDefField		-> Ident RecDefField_1;
-RecDefField_1	-> '=' '[' LocalDecls
-				-> '[' LocalDecls
-				-> .
-				;
-
-
-//--------------------------------------------
-// Fundemental Declarations.  These are the
-// base types that every thing is based on
-//--------------------------------------------
-FundDecl	->FundPointerDecl FundDecl_1;
-FundDecl_1	-> 'BOOL' FundPointerDecl FundDecl_1
-			-> 'CHAR' FundPointerDecl FundDecl_1
-			-> 'BYTE' FundPointerDecl FundDecl_1
-			-> 'INT' FundPointerDecl FundDecl_1
-			-> 'CARD' FundPointerDecl FundDecl_1
-			-> 'RECORDTYPE' FundPointerDecl FundDecl_1
-			-> .
-			;
-
-FundPointerDecl		-> FundArrayDecl FundPointerDecl_1;
-FundPointerDecl_1	-> 'POINTER' FundArrayDecl
-					-> .
-					;
-
-FundArrayDecl	-> FunctionDecl FundArrayDecl_1;
-FundArrayDecl_1	-> 'ARRAY' FunctionDecl 
-				-> .
-				;
-
-FunctionDecl	-> IdentList FunctionDecl_1;;
-FunctionDecl_1	-> 'FUNC' FuncDef
-				-> 'PROC' ProcDef
-				-> 'INTERRUPT' IrqDef
-				-> .
-				;
-
-IrqDef		-> IrqDecl IrqBody;
-ProcDef		-> ProcDecl ProcBody;
-FuncDef		-> FuncDecl FuncBody;
-
-IrqDecl		-> 'IDENT' OptInit '(' ')';
-ProcDecl	-> 'IDENT' OptInit '(' ParamList ')';
-FuncDecl	-> 'IDENT' OptInit '(' ParamList ')';
-
-OptInit		-> '=' CompConst
-			-> .
-			;
-
-IrqBody		-> LocalDecls Statements;
-ProcBody	-> LocalDecls Statements;
-FuncBody	-> LocalDecls Statements;
-
-//----------------------------------
-// Identifiers
-//BYTE a,b;
-//BYTE x=$a0
-//BYTE y=[15]
-//BYTE ARRAY a=$2000
-//BYTE ARRAY b =["This is a string"]
-//BYTE ARRAY c = [1 2 3 4 55 6]
-//BYTE ARRAY d(156) =$2100
-//----------------------------------
-IdentList	-> Ident IdentList_1;
-IdentList_1	-> ',' Ident IdentList_1
-			-> .
-			;
-
-Ident		-> IdentInit Ident_1;
-Ident_1		-> 'IDENT' IdentInit
-			-> .
-			;
-IdentInit	-> ArrayDim IdentInit_1;
-IdentInit_1	-> '=' Address
-			-> .
-			;
-
-Address		-> CompConst Address_1;
-Address_1	-> '[' Data ']'
-			-> .
-			;
-Data		-> ConstList Data_1;
-Data_1		-> 'STRING'
-			-> .
-			;
-ArrayDim	-> ArrayDim_1;
-ArrayDim_1	-> '(' CompConst ')'
-			-> .
-			;
-
-//-------------------------------------------
-// Parameter Declarations
-//-------------------------------------------
-
-ParamList	-> PramPointer Param_1;
-Param_1		-> 'RECORDTYPE' PramPointer Param_1
-			-> 'CHAR' PramPointer Param_1 
-			-> 'BYTE' PramPointer Param_1 
-			-> 'INT' PramPointer Param_1 
-			-> 'CARD' PramPointer Param_1 
-			-> 'BOOL' PramPointer Param_1 
-			-> ',' Param_1
-			-> .
-			;
-
-PramPointer		-> ParamArray ParamPointer_1;
-ParamPointer_1	-> 'POINTER'  ParamArray
-				-> .
-				;
-ParamArray		-> IdentList ParamArray_1;
-ParamArray_1	-> 'ARRAY' IdentList
-				-> .
-				;
-				;			
-//-----------------------------------------------
-// Local Variableas
-//-----------------------------------------------
-
-LocalDecls		-> LocalPointerDecl LocalDecls_1;
-LocalDecls_1	-> 'CHAR' LocalPointerDecl  LocalDecls_1
-				-> 'BYTE' LocalPointerDecl  LocalDecls_1
-				-> 'INT' LocalPointerDecl  LocalDecls_1
-				-> 'CARD' LocalPointerDecl  LocalDecls_1
-				-> 'BOOL' LocalPointerDecl LocalDecls_1
-				-> 'RECORDTYPE' LocalPointerDecl LocalDecls_1
-				-> .
-				;
-
-LocalPointerDecl	-> LocalArrayDecl LocalPointerDecl_1;
-LocalPointerDecl_1	-> 'POINTER' LocalArrayDecl
-					-> .
-					;
-
-LocalArrayDecl		-> IdentList LocalArrayDecl_1;
-LocalArrayDecl_1	-> 'ARRAY' IdentList
-					-> .
-					;
-
-//-------------------------------
-// Compiler Constants
-//-------------------------------
-ConstList	-> CompConst ConstList_1;
-ConstList_1	-> ',' CompConst ConstList_1
-			-> .
-			;
-CompConst		-> BaseCompConst CompConst_1;
-CompConst_1		-> '+' BaseCompConst CompConst_1
-				-> '-' BaseCompConst CompConst_1
-				-> .
-				;
-BaseCompConst	-> 'NUMBER'
-				-> '*'
-				-> '@' MemContentsType
-				-> 'INTERRUPT_IDENT'
-				-> 'FUNC_IDENT'
-				-> 'PROC_IDENT'
-				-> .
-				;
 
 //----------------------------------
 //Variable References
-//Memory References
+//Memory References from run time
 //----------------------------------
 
 ValueList	-> Value ValueList_1;
@@ -732,7 +595,7 @@ ValueList_1	-> ',' Value ValueList_1
 
 Value			-> MemContentsType Value_1;
 Value_1			-> 'NUMBER'
-				-> '*'		// current memroy location
+				-> 'CUR_LOC'		// current memroy location
 				-> '@' AddressOf
 				-> .
 				;
@@ -744,28 +607,307 @@ AddressOf_1		-> 'PROC_IDENT'
 				-> .
 				; 
 MemContentsType		-> MemContents MemContentsType_1;
-MemContentsType_1 	-> '(' ArithExpr ')'	//array ref
-					-> '^'					// Pointer Dereference
+MemContentsType_1 	 -> '^'					// Pointer Dereference
 					-> '.' MemContents MemContentsType_1		//record ref
 					-> .
 					;
 
-MemContents		-> 'IDENT'
+
+MemContents			-> Factor MemContents_1;
+MemContents_1		-> 'VAR_GLOBAL' ArrayIndex
+					-> 'VAR_LOCAL' ArrayIndex
+					-> 'VAR_PARAM' ArrayIndex
+					-> .
+					;
+
+ArrayIndex			-> '(' ArithExpr ')'
+					-> .
+					;
+
+Factor				-> '(' RelOperation ')'
+					-> .
+					;
+		 
+//-------------------------------------------
+// Declarations Grammars
+//-------------------------------------------
+// Vector Address, interrupt, indirect jmp, etc.
+//------------------------------------------
+SysDecl			-> Define Vector_1;
+Vector_1		-> 'VECTOR' VectorEnd Define Vector_1
 				-> .
 				;
 
+VectorEnd		-> AddressEnd VectorEnd_1;
+VectorEnd_1		-> '=' CompConst;
+
+AddressEnd		-> VectorAddress AddressEnd_1;
+AddressEnd_1	-> ')'
+				;
+VectorAddress	-> '('  CompConst;
+
+
+//-------------------------------------------
+// DEFINE declaration  Sort of a MACRO defination
+//-------------------------------------------
+Define		-> TypeDefDecl Define_1;
+Define_1	-> 'DEFINE' DefObject TypeDefDecl Define
+			-> .
+			;
+
+DefObject	-> DefList DefObject_1;
+DefObject_1	-> 'SECTION' SectionName
+			-> DefList
+			;
+
+DefList	-> Def DefList_1;
+DefList_1	-> ',' Def DefList_1
+			-> .
+			;
+Def		-> IDENT '=' CompConst;
+
+//----------------------------------------------
+// TYPE Defination  Creates User define data
+// object.
+//----------------------------------------------
+TypeDefDecl		-> DECLARE TypeDefDecl_1;
+TypeDefDecl_1	-> 'TYPE' TypeDef Declare TypeDefDecl_1
+				-> .
+				;
+
+TypeDef			-> IDENT TypeDef_1;
+TypeDef_1		-> '=' '[' LocalDecls TypeDef_2;
+TypeDef_2		-> ']';
+
+//--------------------------------------------
+// FUNC, PROC, INTERRUPT prototype declarations
+//--------------------------------------------
+
+DECLARE		-> FundDecl Declare_1;
+Declare_1	-> 'DECLARE' DECLAREnd FundDecl Declare_1
+			-> .
+			;
+
+DECLAREnd	-> DECLAREFuncType DECLAREnd_1;
+DECLAREnd_1 -> '(' DECLAREParamList DECLAREnd_1
+			-> ')' ;
+
+DECLAREParamList	-> DECLAREParamTypeSpec DECLAREParamList_1;
+DECLAREParamList_1	-> 'RECORDTYPE' DECLAREParamTypeSpec DECLAREParamList_1
+					-> 'CHAR' DECLAREParamTypeSpec DECLAREParamList_1 
+					-> 'BYTE' DECLAREParamTypeSpec DECLAREParamList_1 
+					-> 'INT' DECLAREParamTypeSpec DECLAREParamList_1 
+					-> 'CARD' DECLAREParamTypeSpec DECLAREParamList_1 
+					-> 'BOOL' DECLAREParamTypeSpec DECLAREParamList_1 
+					-> .
+					;
+
+DECLAREParamTypeSpec	-> DECLAREParamIdentList DECLAREParamTypeSpec_1;
+DECLAREParamTypeSpec_1	-> 'POINTER'  DECLAREParamIdentList DECLAREParamTypeSpec_1
+						-> 'ARRAY' DECLAREParamIdentList DECLAREParamTypeSpec_1
+						-> .
+						;
+
+DECLAREParamIdentList	-> DECLAREParamIdent DECLAREParamIdentList_1;
+DECLAREParamIdentList_1	-> ',' DECLAREParamIdent DECLAREParamIdentList_1
+						-> .
+						;
+
+DECLAREParamIdent		-> 'IDENT';
+
+//------------------
+
+DECLAREFuncType		-> DECLARETypeSpec DECLAREFuncType_1;
+DECLAREFuncType_1	-> 'BYTE' DECLARETypeSpec DECLAREFuncType_1
+					-> 'CHAR' DECLARETypeSpec DECLAREFuncType_1
+					-> 'INT' DECLARETypeSpec DECLAREFuncType_1
+					-> 'CARD' DECLARETypeSpec DECLAREFuncType_1
+					-> 'BOOL' DECLARETypeSpec DECLAREFuncType_1
+					-> 'RECORDTYPE' DECLARETypeSpec DECLAREFuncType_1
+					-> .
+					;
+
+DECLARETypeSpec		-> DECLARfunction DECLARETypeSpec_1;
+DECLARETypeSpec_1	-> 'POINTER' DECLARfunction DECLARETypeSpec_1
+					-> 'ARRAY' DECLARfunction DECLARETypeSpec_1
+					-> .
+					;
+
+DECLARfunction	-> 'FUNC' DECLAREFuncName
+				-> 'PROC' DECLAREFuncName
+				-> 'INTERRUPT' DECLAREFuncName
+				-> .
+				;
+
+DECLAREFuncName	-> 'IDENT';
+
+//--------------------------------------------
+// Fundemental Declarations.  These are the
+// base types that every thing is based on
+//--------------------------------------------
+FundDecl	->FundTypeSpec FundDecl_1;
+FundDecl_1	-> 'BOOL' FundTypeSpec FundDecl_1
+			-> 'CHAR' FundTypeSpec FundDecl_1
+			-> 'BYTE' FundTypeSpec FundDecl_1
+			-> 'INT' FundTypeSpec FundDecl_1
+			-> 'CARD' FundTypeSpec FundDecl_1
+			-> 'RECORDTYPE' FundTypeSpec FundDecl_1
+			-> 'PROC' ProcDecl FundDecl_1
+			-> 'INTERRUPT' IrqDecl FundDecl_1
+			-> .
+			;
+
+FundTypeSpec	-> IdentList FundTypeSpec_1;
+FundTypeSpec_1	-> 'POINTER' IdentList FundTypeSpec_1
+				-> 'ARRAY'  IdentList FundTypeSpec_1
+				-> .
+				;
+
+IdentList	-> Ident IdentList_1;
+IdentList_1	-> ',' Ident IdentList_1
+			-> .
+			;
+
+Ident		-> 'IDENT' IdentInitType
+			-> 'FUNC' FuncDecl
+			;
+
+
+//-----------------------
+IdentInitType	-> '(' CompConst ')'
+				-> '=' InitData
+				.
+				;
+
+InitData		-> CompConst InitData_1;
+InitData_1		-> 'STRING'
+				-> '[' ComstListEnd
+				-> .
+				;
+
+
+//------------------------------------------------
+// Proceedure, Functions, Interrupt Routines
+//------------------------------------------------
+
+IrqDecl			-> 'IDENT' OptInit IrqDeclParams;
+IrqDeclParams	-> '(' ')' IrqBody;
+IrqBody			-> LocalDecls Statements;
+
+ProcDecl		-> 'IDENT' OptInit ProcDeclParams;
+ProcDeclParams	-> '(' ParamList ')' ProcBody;
+ProcBody		-> LocalDecls Statements;
+
+FuncDecl		-> 'IDENT' OptInit FuncDeclParams;
+FuncDeclParams	-> '(' ParamList ')' FuncBody;
+FuncBody		-> LocalDecls Statements;
+
+
+OptInit		-> '=' CompConst
+			-> .
+			;
+
+
+//----------------------------------
+// Identifiers declarations
+//BYTE a,b;
+//BYTE x=$a0
+//BYTE y=[15]
+//BYTE ARRAY a=$2000
+//BYTE ARRAY b =["This is a string"]
+//BYTE ARRAY c = [1 2 3 4 55 6]
+//BYTE ARRAY d(156) =$2100
+//----------------------------------
+
+//-------------------------------------------
+// Parameter Declarations
+//-------------------------------------------
+
+ParamList	-> ParamTypeSpec Param_1;
+Param_1		-> 'RECORDTYPE' ParamTypeSpec Param_1
+			-> 'CHAR' ParamTypeSpec Param_1 
+			-> 'BYTE' ParamTypeSpec Param_1 
+			-> 'INT' ParamTypeSpec Param_1 
+			-> 'CARD' ParamTypeSpec Param_1 
+			-> 'BOOL' ParamTypeSpec Param_1 
+			-> .
+			;
+
+ParamTypeSpec	-> DefineParamIdentList ParamTypeSpec_1;
+ParamTypeSpec_1	-> 'POINTER' DefineParamIdentList ParamTypeSpec_1
+				-> 'ARRAY' DefineParamIdentList ParamTypeSpec_1
+				-> .
+				;
+				
+DefineParamIdentList	-> DefineParamIdent DefineParamIdentList_1;
+DefineParamIdentList_1	-> ',' DefineParamIdent DefineParamIdentList_1
+						-> .
+						;
+
+DefineParamIdent		-> 'IDENT';
+//-----------------------------------------------
+// Local Variableas
+//-----------------------------------------------
+
+LocalDecls		-> LocalVarDecls LocalTypeDef_1;
+LocalTypeDef_1	-> 'TYPE' TypeDef LocalVarDecls LocalTypeDef_1
+				-> .
+				;
+
+LocalVarDecls	-> LocalTypeSpec LocalVarDecls_1;
+LocalVarDecls_1	-> 'CHAR' LocalTypeSpec  LocalVarDecls_1
+				-> 'BYTE' LocalTypeSpec  LocalVarDecls_1
+				-> 'INT' LocalTypeSpec  LocalVarDecls_1
+				-> 'CARD' LocalTypeSpec  LocalVarDecls_1
+				-> 'BOOL' LocalTypeSpec LocalVarDecls_1
+				-> 'RECORDTYPE' LocalTypeSpec LocalVarDecls_1
+				-> .
+				;
+
+LocalTypeSpec	-> IdentList LocalTypeSpec_1;
+LocalTypeSpec_1	-> 'POINTER' IdentList LocalTypeSpec_1
+				-> 'ARRAY' IdentList LocalTypeSpec_1
+				-> .
+				;
+
+//-------------------------------
+// Compiler Constants, from Compile time
+//-------------------------------
+//ConstList	-> '[' ComstListEnd
+//			-> .
+//			;
+//
+ComstListEnd	-> CompConst ComstListEnd_1;
+ComstListEnd_1	-> ']'
+				-> ',' CompConst ComstListEnd_1
+				-> CompConst ComstListEnd_1;
+
+
+CompConst		-> BaseCompConst CompConst_1;
+CompConst_1		-> '+' BaseCompConst CompConst_1
+				-> '-' BaseCompConst CompConst_1
+				-> .
+				;
+
+BaseCompConst	-> 'NUMBER'
+				-> 'CUR_LOC'
+				-> '@' 'IDENT'
+				-> 'DEFINED_IDENT'
+				-> 'INTERRUPT_IDENT'
+				-> 'FUNC_IDENT'
+				-> 'PROC_IDENT'
+				;
 
 
 //----------------------------------------
 //  Inline assembly code
 //----------------------------------------
-
 //----------------------------------------
 //	Statements
 //----------------------------------------
 
-AsmStmt			-> DefineMemory Processor_1;
-Processor_1		-> 'PROCESSOR' ProcessorType DefineMemory Processor_1
+AsmStmt			-> AsmSet Processor_1;
+Processor_1		-> 'PROCESSOR' ProcessorType AsmSet Processor_1
 				-> .
 				;
 ProcessorType	-> 'R6502'
@@ -781,8 +923,23 @@ ProcessorType	-> 'R6502'
 //-----------------------------------------
 
 //-----------------------------------------
+// SET
+//-----------------------------------------
+AsmSet		-> Section AsmSet_1;
+AsmSet_1	-> 'SET' AsmSetObjects Section AsmSet_1
+			-> .
+			;
+
+AsmSetObjects	-> 'SECTION' AsmSectionName
+				-> .
+				;
+
+AsmSectionName	-> SECTION_NAME;
+				
+//-----------------------------------------
 // SECITON
 //-----------------------------------------
+
 Section		-> Org Section_1;
 Section_1	-> 'SECTION' SectionName Org Section_1
 				-> .
@@ -851,12 +1008,22 @@ DefineStorage_1	-> 'DS' AsmConstant Proceedure DefineStorage_1
 // Proceedure
 //-------------------------------------
 Proceedure		-> Instruction Proceedure_1;
-Proceedure_1	-> 'ASMPROC' Section 'EPROC' Instruction Proceedure_1
+Proceedure_1	-> 'PROC' AsmProcEnd Instruction Proceedure_1
 				-> .
 				;
 
+AsmProcEnd		-> AsmProcBody AsmProcEnd_1;
+AsmProcEnd_1	-> 'EPROC';
+
+AsmProcBody		-> AsmProcName AsmProcBody_1;
+AsmProcBody_1	-> 'BEFIN' AsmStmt;
+	
+AsmProcName		-> IDENT;
+
+
 //--------------------------------------
 // Opcodes
+//	<Label>	<OP> <addressing mode>
 //--------------------------------------
 Instruction		-> Labels Instruction_1;	
 Instruction_1	-> 'ADC'  AluAdrModes	Labels Instruction_1 //ALU Opcodes		
@@ -921,10 +1088,8 @@ Instruction_1	-> 'ADC'  AluAdrModes	Labels Instruction_1 //ALU Opcodes
 //---------------------------------------------
 // Lables
 //---------------------------------------------
-Labels	-> 'IDENT' Label_1	//Global
-		-> .
-		;
-Label_1	-> ':'		//private lable
+Labels	-> 'GLOBAL_LABEL'	//Global
+		-> 'LOCAL_LABEL'	// Local
 		-> .
 		;
 
@@ -1053,8 +1218,8 @@ AsmConstList_2	-> ',' AsmConstant AsmConstList_2
 				-> .
 				;
 
-AsmConstant		-> AsmConstAddSub AsmConstant_1;
-AsmConstant_1	-> '>' AsmConstAddSub 	//Lower Part
+AsmConstant		-> AsmConstAddSub AsmConstUpLow_1;
+AsmConstUpLow_1	-> '>' AsmConstAddSub 	//Lower Part
 				-> '<' AsmConstAddSub 	//Upper Part
 				-> .
 				;
@@ -1065,9 +1230,9 @@ AsmConstAddSub_1	-> '+' BaseAsmConstant AsmConstAddSub_1
 					-> .
 					;
 
-BaseAsmConstant	-> 'LOCAL_LABLE'
-				-> 'GLOBAL_LABLE'
-				-> 'IDENT'
+BaseAsmConstant	-> 'LABEL_LOCAL'	//from a CSymbol
+				-> 'LABEL_GLOBAL'	//from a CSymbol
+				-> 'IDENT'			//from a CSymbol
 				-> 'NUMBER'
 				-> 'CHAR_CONSTANT'
 				-> '*'				//current location counter
