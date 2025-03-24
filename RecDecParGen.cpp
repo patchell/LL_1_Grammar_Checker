@@ -126,7 +126,7 @@ BOOL CRecDecParGen::Run()
 	//--------------------------------------------
 	fprintf(LogFile(), "------------ Check For Conflicts-------------\n");
 	fprintf(stderr , "Conflicts = %d\n",
-		GetParseTable()->CheckForConflicts(LogFile())
+		GetParseTable()->CheckForConflicts(stderr)
 	);
 	return 0;
 }

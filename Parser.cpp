@@ -145,6 +145,7 @@ void CParser::Parse()
 	// All done, just need to tack $ onto the
 	// head grammar rule.
 	//------------------------------------------
+	fprintf(stderr, "Lines Compiled:%d\n", GetLexer()->GetLineNumber());
 	pSM = GetLexer()->GetSymTab()->GetNonTerminalSet()->GetHead();
 	pSM_EOT = new CSetMember;
 	if (pSM == NULL)
@@ -189,6 +190,7 @@ CToken::LLRD_Token CParser::Grammar(CToken::LLRD_Token LookaHeadToken)
 		LookaHeadToken = Expect(LookaHeadToken, CToken::LLRD_Token::EMPTY);
 		break;
 	default:
+		fprintf(stderr, "Expected \'GRAMMAR\' Line:%d\n", GetLexer()->GetLineNumber());
 		break;
 	}
 	return LookaHeadToken;
